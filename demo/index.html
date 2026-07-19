@@ -53,9 +53,9 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
   #rotatePrompt{display:flex;}
 }
 
-/* ═══ CLEAN DYNAMIC HOME SCREEN ═══ */
+/* ═══ ULTRA CLEAN HOME SCREEN ═══ */
 #homeScreen{
-  background:radial-gradient(ellipse 90% 70% at 50% 20%, rgba(22,36,71,0.95) 0%, rgba(8,13,26,0.98) 60%, rgba(4,6,13,1) 100%);
+  background:radial-gradient(ellipse 100% 80% at 50% 15%, rgba(15,23,42,0.85) 0%, rgba(6,10,22,0.92) 60%, rgba(3,5,10,0.98) 100%);
   padding:env(safe-area-inset-top,10px) 0 env(safe-area-inset-bottom,12px);
 }
 
@@ -70,17 +70,17 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 
 .game-title-banner{text-align:center;margin-top:2px;}
 .game-title-banner h1{
-  font-size:clamp(30px, 6vw, 50px);
+  font-size:clamp(32px, 6vw, 52px);
   font-weight:900;
   line-height:1;
   background:linear-gradient(135deg,#00f5a0 0%,#00d9f5 50%,#7b2ff7 100%);
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
   filter:drop-shadow(0 4px 15px rgba(0,245,160,0.4));
-  letter-spacing:1px;
+  letter-spacing:1.5px;
 }
 .game-title-banner .sub{
-  font-size:11px;color:#00f5a0;font-weight:800;letter-spacing:3px;text-transform:uppercase;margin-top:2px;
+  font-size:11px;color:#00f5a0;font-weight:800;letter-spacing:4px;text-transform:uppercase;margin-top:2px;
 }
 
 .high-score-pill{
@@ -102,40 +102,79 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 }
 .icon-btn:active{transform:scale(0.92);background:rgba(255,255,255,0.18);}
 
-/* Worm Canvas Preview */
-.worm-preview{height:95px;width:100%;max-width:500px;overflow:hidden;margin:2px 0;}
+/* Worm Live Canvas Preview */
+.worm-preview{height:90px;width:100%;max-width:480px;overflow:hidden;margin:4px 0;}
 .worm-canvas{width:100%;height:100%;}
 
-/* Name Edit Input */
-.name-section{width:100%;padding:0 20px;text-align:center;max-width:480px;}
+/* Name Edit Card */
+.name-section{width:100%;padding:0 20px;text-align:center;max-width:460px;}
 .name-card{
-  background:rgba(255,255,255,0.06);
-  border:1.5px solid rgba(255,255,255,0.14);
-  border-radius:18px;padding:8px 12px;
-  display:flex;align-items:center;gap:8px;
-  backdrop-filter:blur(10px);
+  background:rgba(255,255,255,0.07);
+  border:1.5px solid rgba(0,245,160,0.3);
+  border-radius:20px;padding:8px 14px;
+  display:flex;align-items:center;gap:10px;
+  backdrop-filter:blur(12px);
+  box-shadow:0 8px 32px rgba(0,0,0,0.3);
 }
 #playerNameInput{
   flex:1;background:transparent;border:none;
-  color:#fff;font-size:17px;outline:none;
+  color:#fff;font-size:18px;outline:none;
   text-align:center;font-weight:900;
   letter-spacing:1px;
 }
 #playerNameInput::placeholder{color:#666;}
 .rand-name-btn{
   background:rgba(255,255,255,0.1);border:none;border-radius:12px;
-  padding:8px 12px;font-size:16px;cursor:pointer;
+  padding:8px 12px;font-size:17px;cursor:pointer;
   transition:transform .12s;
 }
 .rand-name-btn:active{transform:scale(0.9);}
 
-/* Map Selector */
-.map-selector-row{display:flex;gap:8px;margin-top:8px;padding:0 20px;width:100%;max-width:480px;}
-.map-select-btn{
+/* CLEAN CUSTOMIZER PANEL */
+.customizer-card{
+  width:100%;max-width:460px;margin-top:10px;padding:0 20px;
+}
+.customizer-box{
+  background:rgba(15,23,42,0.65);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:20px;padding:12px 14px;
+  backdrop-filter:blur(12px);
+}
+
+.tab-header{display:flex;gap:6px;margin-bottom:10px;}
+.tab-btn{
   flex:1;background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:12px;padding:8px;
+  font-size:11px;font-weight:800;color:#888;
+  text-align:center;cursor:pointer;
+  transition:all .2s;
+}
+.tab-btn.active{
+  background:rgba(0,245,160,0.15);
+  border-color:#00f5a0;color:#00f5a0;
+}
+
+.item-scroll{display:flex;gap:12px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
+.item-scroll::-webkit-scrollbar{display:none;}
+.custom-item{flex-shrink:0;width:56px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;}
+.custom-circle{
+  width:48px;height:48px;border-radius:50%;
+  border:3px solid transparent;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;
+  transition:transform .2s,border-color .2s,box-shadow .2s;
+}
+.custom-circle.sel{border-color:#fff;transform:scale(1.14);box-shadow:0 0 15px rgba(255,255,255,0.4);}
+.item-name{font-size:9px;color:#888;text-align:center;white-space:nowrap;}
+
+/* Map Selector Grid */
+.map-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.map-select-btn{
+  background:rgba(255,255,255,0.05);
   border:1.5px solid rgba(255,255,255,0.1);
-  border-radius:14px;padding:8px 6px;
-  color:#888;font-size:11px;font-weight:800;
+  border-radius:12px;padding:8px 4px;
+  color:#888;font-size:10px;font-weight:800;
   cursor:pointer;text-align:center;
   transition:all .2s;
 }
@@ -145,37 +184,8 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
   box-shadow:0 0 12px rgba(0,245,160,0.25);
 }
 
-/* Customizer Tabs */
-.customizer-section{width:100%;padding:0 20px;margin-top:8px;max-width:480px;}
-.tab-header{display:flex;gap:8px;margin-bottom:8px;}
-.tab-btn{
-  flex:1;background:rgba(255,255,255,0.05);
-  border:1px solid rgba(255,255,255,0.1);
-  border-radius:12px;padding:7px;
-  font-size:12px;font-weight:800;color:#888;
-  text-align:center;cursor:pointer;
-  transition:all .2s;
-}
-.tab-btn.active{
-  background:rgba(0,245,160,0.15);
-  border-color:#00f5a0;color:#00f5a0;
-}
-
-.item-scroll{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none;}
-.item-scroll::-webkit-scrollbar{display:none;}
-.custom-item{flex-shrink:0;width:54px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;}
-.custom-circle{
-  width:46px;height:46px;border-radius:50%;
-  border:3px solid transparent;
-  display:flex;align-items:center;justify-content:center;
-  font-size:22px;
-  transition:transform .2s,border-color .2s,box-shadow .2s;
-}
-.custom-circle.sel{border-color:#fff;transform:scale(1.15);box-shadow:0 0 15px rgba(255,255,255,0.4);}
-.item-name{font-size:9px;color:#777;text-align:center;white-space:nowrap;}
-
 /* PRO Arcade Play Buttons */
-.play-section{width:100%;padding:0 20px;display:flex;flex-direction:column;gap:10px;margin-top:10px;max-width:480px;}
+.play-section{width:100%;padding:0 20px;display:flex;flex-direction:column;gap:10px;margin-top:12px;max-width:460px;}
 .btn-play{
   width:100%;border:none;border-radius:18px;
   padding:16px;font-size:17px;font-weight:900;
@@ -256,7 +266,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 .lbs{color:#ffd700;font-weight:700;font-size:10px;}
 .lbe.me .lbn{color:#7df;font-weight:700;}
 
-/* Dynamic Controls & Sound Buttons on HUD */
+/* Controls & Sound Pills on HUD */
 .hud-controls-bar{
   position:absolute;bottom:20px;left:50%;transform:translateX(-50%);
   display:flex;gap:10px;pointer-events:auto;
@@ -382,7 +392,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 
 <canvas id="canvas"></canvas>
 
-<!-- ═══ PRO HOME SCREEN ═══ -->
+<!-- ═══ ULTRA CLEAN HOME SCREEN ═══ -->
 <div id="homeScreen" class="screen active">
   <div class="home-header">
     <div class="high-score-pill">🏆 BEST: <span id="highScoreVal">0</span></div>
@@ -395,9 +405,10 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
     <div class="sub">PRO MULTIPLAYER EDITION</div>
   </div>
 
+  <!-- Worm Live Canvas Preview -->
   <canvas id="previewCanvas" class="worm-canvas worm-preview"></canvas>
 
-  <!-- Name Input -->
+  <!-- Name Edit Card -->
   <div class="name-section">
     <div class="name-card">
       <input type="text" id="playerNameInput" placeholder="Apna Name Likho..." maxlength="14" value="SlitherPro">
@@ -405,27 +416,30 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
     </div>
   </div>
 
-  <!-- Map Selector -->
-  <div class="map-selector-row">
-    <div class="map-select-btn sel" data-map="5000" data-theme="dark">🪐 Dark (5k)</div>
-    <div class="map-select-btn" data-map="5000" data-theme="jungle">🌿 Jungle</div>
-    <div class="map-select-btn" data-map="5000" data-theme="cyber">🌌 Cyber</div>
-    <div class="map-select-btn" data-map="8000" data-theme="mega">🌋 Infinite (8k)</div>
-  </div>
+  <!-- CLEAN CUSTOMIZER PANEL (SKINS, FACES, MAP THEMES) -->
+  <div class="customizer-card">
+    <div class="customizer-box">
+      <div class="tab-header">
+        <div class="tab-btn active" id="tabSkins">🎨 Body Skins</div>
+        <div class="tab-btn" id="tabFaces">😎 Face Glasses</div>
+        <div class="tab-btn" id="tabMaps">🌌 Map Themes</div>
+        <button id="fruitBtn" style="background:linear-gradient(135deg,#ff6b00,#ff9500);border:none;border-radius:10px;padding:4px 8px;color:#fff;font-size:10px;font-weight:800;cursor:pointer;">🍎 Fruits</button>
+      </div>
 
-  <!-- Customizer Tabs -->
-  <div class="customizer-section">
-    <div class="tab-header">
-      <div class="tab-btn active" id="tabSkins">🎨 Body Skins</div>
-      <div class="tab-btn" id="tabFaces">😎 Face Glasses</div>
-      <button id="fruitBtn" style="background:linear-gradient(135deg,#ff6b00,#ff9500);border:none;border-radius:10px;padding:4px 10px;color:#fff;font-size:11px;font-weight:800;cursor:pointer;">🍎 Fruits</button>
+      <!-- Body Skins View -->
+      <div id="skinsView" class="item-scroll"></div>
+
+      <!-- Face Accessories View -->
+      <div id="facesView" class="item-scroll" style="display:none;"></div>
+
+      <!-- Map Themes Grid View -->
+      <div id="mapsView" class="map-grid" style="display:none;">
+        <div class="map-select-btn sel" data-map="5000" data-theme="dark">🪐 Dark (5k)</div>
+        <div class="map-select-btn" data-map="5000" data-theme="jungle">🌿 Jungle</div>
+        <div class="map-select-btn" data-map="5000" data-theme="cyber">🌌 Cyber</div>
+        <div class="map-select-btn" data-map="8000" data-theme="mega">🌋 Infinite (8k)</div>
+      </div>
     </div>
-
-    <!-- Body Skins View -->
-    <div id="skinsView" class="item-scroll"></div>
-
-    <!-- Face Accessories View -->
-    <div id="facesView" class="item-scroll" style="display:none;"></div>
   </div>
 
   <!-- PRO Arcade Play Buttons -->
@@ -477,7 +491,6 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
     </div>
   </div>
 
-  <!-- Controls & Sound Pills on HUD -->
   <div class="hud-controls-bar">
     <div class="hud-pill-btn" id="zoomToggleBtn">🔍 <span id="zoomLevelVal">1.0x</span></div>
     <div class="hud-pill-btn" id="nameToggleBtn">🏷️ <span id="nameToggleVal">NAMES ON</span></div>
@@ -707,7 +720,7 @@ const AI_NAMES=['SnakeKing','WormPro','CoilMaster','SlitherX','ZoneBoss','HissKi
 
 let selectedSkin=0;
 let selectedFace='glasses';
-let showInGameNames = true; // Toggle in-game floating names above head
+let showInGameNames = true;
 
 document.getElementById('nameToggleBtn').addEventListener('click', () => {
   showInGameNames = !showInGameNames;
@@ -741,17 +754,27 @@ FACE_SKINS.forEach((f,i)=>{
   facesView.appendChild(item);
 });
 
+// Customizer Tabs Switcher (Skins, Faces, Maps)
 document.getElementById('tabSkins').addEventListener('click', () => {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tabSkins').classList.add('active');
-  document.getElementById('tabFaces').classList.remove('active');
   skinsView.style.display = 'flex';
   facesView.style.display = 'none';
+  document.getElementById('mapsView').style.display = 'none';
 });
 document.getElementById('tabFaces').addEventListener('click', () => {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tabFaces').classList.add('active');
-  document.getElementById('tabSkins').classList.remove('active');
   facesView.style.display = 'flex';
   skinsView.style.display = 'none';
+  document.getElementById('mapsView').style.display = 'none';
+});
+document.getElementById('tabMaps').addEventListener('click', () => {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tabMaps').classList.add('active');
+  document.getElementById('mapsView').style.display = 'grid';
+  skinsView.style.display = 'none';
+  facesView.style.display = 'none';
 });
 
 document.getElementById('randNameBtn').addEventListener('click', () => {
@@ -828,7 +851,7 @@ function updatePreview(){
 
 // Dynamic Home Floating Background Items
 const menuBgItems = [];
-for(let i=0; i<30; i++){
+for(let i=0; i<35; i++){
   menuBgItems.push({
     x: Math.random()*window.innerWidth,
     y: Math.random()*window.innerHeight,
@@ -1286,7 +1309,7 @@ function drawMap(){
 }
 
 // ═══════════════════════════════════════════════════════
-//  COLLISION & SOUND EFFECTS INTEGRATION
+//  COLLISION DETECTOR
 // ═══════════════════════════════════════════════════════
 function checkCols(){
   if(!player?.alive)return;
@@ -1297,7 +1320,7 @@ function checkCols(){
     if(Math.hypot(f.x-player.head.x,f.y-player.head.y)<player.r+ft.r+3){
       player.grow(Math.max(1,Math.ceil(ft.pts/5)));
       foodEaten++;
-      playEatSound(); // 🍏 CRISP POP/EAT SOUND!
+      playEatSound();
       addParticles(f.x,f.y,ft.col,5);
       delete foods[id];
       if(!isOffline)socket?.emit('food_eaten',id);
@@ -1308,7 +1331,7 @@ function checkCols(){
   Object.entries(powerups).forEach(([id,pu])=>{
     if(Math.hypot(pu.x-player.head.x,pu.y-player.head.y)<player.r+22){
       delete powerups[id];
-      playPowerupSound(); // ⚡ POWERUP SOUND!
+      playPowerupSound();
       if(!isOffline)socket?.emit('powerup_collected',id);
       else applyPU(pu.type);
     }
@@ -1330,7 +1353,7 @@ function checkCols(){
         if(Math.hypot(mySeg.x - rpHead.x, mySeg.y - rpHead.y) < (rp.r || 12) * 0.75 + player.r * 0.75){
           if(isOffline){
             rp.alive = false;
-            playKillSound(); // 💥 EXPLOSION KILL SOUND!
+            playKillSound();
             rp.segs.forEach((s, k) => {
               if(k % 2 === 0){
                 const f = makeLocalFood(s.x, s.y);
@@ -1576,7 +1599,7 @@ function renderRoomList(list){
 }
 
 function doStart(mode){
-  initAudio(); // Initialize audio on user interaction!
+  initAudio();
   playerName=document.getElementById('playerNameInput').value.trim()||'SlitherPro';
   if(mode==='offline'||!socket?.connected){startOffline();return;}
   isOffline=false;
