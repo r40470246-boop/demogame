@@ -70,7 +70,7 @@ function makeFood(x, y, val, mapSize = DEFAULT_MAP){
 }
 
 function makePowerup(x, y, mapSize = DEFAULT_MAP){
-  const TYPES = ['speed','magnet','shield','ghost'];
+  const TYPES = ['speed','magnet','shield','ghost','zoom'];
   return {
     id:   Math.random().toString(36).slice(2),
     x:    x ?? rnd(150, mapSize-150),

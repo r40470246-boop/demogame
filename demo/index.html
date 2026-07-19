@@ -22,7 +22,7 @@ html,body{
   -webkit-overflow-scrolling:none;
 }
 
-canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;}
+#canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;}
 
 .screen{
   position:fixed;inset:0;
@@ -539,7 +539,7 @@ let socket, myId = null, currentRoom = null, MAP = 5000;
 let player = null, remotePlayers = {}, foods = {}, powerups = {};
 let cam = { x: 0, y: 0 }, mouseW = { x: 0, y: 0 };
 let gameOn = false, isBoosting = false, foodEaten = 0;
-let activePU = { speed: 0, magnet: 0, shield: 0, ghost: 0 };
+let activePU = { speed: 0, magnet: 0, shield: 0, ghost: 0, zoom: 0 };
 let particles = [];
 let playerName = 'SlitherPro';
 let pingMs = 0, raf;
@@ -547,6 +547,8 @@ let isOffline = false, aiWorms = [];
 let lastJoinData = null;
 let globalPhase = 0;
 let revivesLeft = 2;
+let spawnInvincibility = 0;
+
 
 
 // ═══════════════════════════════════════════════════════
@@ -728,6 +730,7 @@ const PU_META={
   magnet:{icon:'🧲',col:'#00E5FF',lbl:'FOOD MAGNET!',dur:8},
   shield:{icon:'🛡️',col:'#2ecc40',lbl:'SHIELD ON!',  dur:9},
   ghost: {icon:'👻',col:'#CE93D8',lbl:'GHOST MODE!', dur:6},
+  zoom:  {icon:'🔍',col:'#10B981',lbl:'ZOOM RADAR!',  dur:10},
 };
 
 const RANDOM_NAMES = ['SlitherPro','ViperX','GigaWorm','PythonKing','ZoneMaster','NeonBeast','ShadowSnake','TitanCoil','HissLord','AlphaWorm','VenomX','DragonSlither'];
@@ -1119,6 +1122,10 @@ class LocalWorm{
     ctx.globalAlpha=1;ctx.shadowBlur=0;
     const hx=this.head.x-cam.x,hy=this.head.y-cam.y;
     drawEyesAndFaceOnCtx(ctx,hx,hy,this.angle,r,this.faceStyle);
+    if(spawnInvincibility > 0){
+      ctx.beginPath();ctx.arc(hx,hy,r+9,0,Math.PI*2);
+      ctx.strokeStyle='rgba(255,215,0,0.7)';ctx.lineWidth=2.5;ctx.shadowColor='#FFD700';ctx.shadowBlur=18;ctx.stroke();ctx.shadowBlur=0;
+    }
     if(activePU.shield>0){
       ctx.beginPath();ctx.arc(hx,hy,r+8,0,Math.PI*2);
       ctx.strokeStyle='rgba(46,204,64,0.8)';ctx.lineWidth=3;ctx.shadowColor='#2ecc40';ctx.shadowBlur=20;ctx.stroke();ctx.shadowBlur=0;
@@ -1382,9 +1389,9 @@ function checkCols(){
     // OTHER SNAKE HEAD HITS MY BODY -> THEY DIE!
     const rpHead = rp.head || { x: rp.x, y: rp.y };
     if(rpHead && player.segs.length > 5){
-      for(let j = 4; j < player.segs.length; j += 2){
+      for(let j = 2; j < player.segs.length; j++){
         const mySeg = player.segs[j];
-        if(Math.hypot(mySeg.x - rpHead.x, mySeg.y - rpHead.y) < (rp.r || 12) * 0.75 + player.r * 0.75){
+        if(Math.hypot(mySeg.x - rpHead.x, mySeg.y - rpHead.y) < (rp.r + player.r) * 0.85){
           if(isOffline){
             rp.alive = false;
             playKillSound();
@@ -1408,12 +1415,12 @@ function checkCols(){
       }
     }
 
-    // MY HEAD HITS OTHER BODY -> I DIE!
-    if(player.alive){
+    // MY HEAD HITS OTHER BODY -> I DIE (unless invincible / shield)!
+    if(player.alive && spawnInvincibility <= 0){
       const segs = rp.segs || [];
-      for(let i = 4; i < segs.length; i += 2){
+      for(let i = 2; i < segs.length; i++){
         const seg = segs[i];
-        if(Math.hypot(seg.x - player.head.x, seg.y - player.head.y) < player.r * 0.7 + (rp.r||12) * 0.7){
+        if(Math.hypot(seg.x - player.head.x, seg.y - player.head.y) < (player.r + rp.r) * 0.85){
           if(activePU.shield > 0){
             activePU.shield = 0;
             showPNotif('🛡️ Shield absorbed collision!', '#2ecc40');
@@ -1424,6 +1431,36 @@ function checkCols(){
         }
       }
     }
+  }
+
+  // BOT-TO-BOT Head-to-Body Collisions (Offline only)
+  if(isOffline){
+    aiWorms.forEach((botA, idxA) => {
+      if(!botA.alive) return;
+      aiWorms.forEach((botB, idxB) => {
+        if(idxA === idxB || !botB.alive) return;
+        const headA = botA.head;
+        for(let k = 2; k < botB.segs.length; k++){
+          const segB = botB.segs[k];
+          if(Math.hypot(segB.x - headA.x, segB.y - headA.y) < (botA.r + botB.r) * 0.82){
+            botA.alive = false;
+            botA.segs.forEach((s, step) => {
+              if(step % 2 === 0){
+                const f = makeLocalFood(s.x, s.y);
+                f.val = 20 + Math.floor(Math.random()*30);
+                foods[f.id] = f;
+              }
+            });
+            addParticles(headA.x, headA.y, SKINS[botA.skin]?.h || '#ff4136', 15);
+            addKF('💥 ' + botB.name + ' eliminated ' + botA.name);
+            setTimeout(() => {
+              aiWorms[idxA] = new AIWorm(Math.floor(Math.random()*AI_NAMES.length));
+            }, 3000);
+            break;
+          }
+        }
+      });
+    });
   }
 }
 
@@ -1485,7 +1522,9 @@ document.getElementById('shareGameBtn').addEventListener('click', ()=>{
 //  SPAWN & START
 // ═══════════════════════════════════════════════════════
 function spawnLocalPlayer(x,y){
-  foodEaten=0;particles=[];activePU={speed:0,magnet:0,shield:0,ghost:0};
+  foodEaten=0;particles=[];
+  activePU={speed:0,magnet:0,shield:0,ghost:0,zoom:0};
+  spawnInvincibility = 3.0; // 3 seconds invincibility on spawn!
   document.getElementById('killFeed').innerHTML='';
   document.getElementById('hudScore').textContent='0';
   document.getElementById('hudSize').textContent='Size: 5';
@@ -1500,9 +1539,17 @@ function startOffline(){
   foods={};powerups={};aiWorms=[];remotePlayers={};
 
   for(let i=0;i<650;i++){const f=makeLocalFood();foods[f.id]=f;}
-  for(let i=0;i<28;i++) aiWorms.push(new AIWorm(i));
+  for(let i=0;i<28;i++) {
+    const bot = new AIWorm(i);
+    // Ensure bot does not spawn near player (within 600px radius)
+    while(Math.hypot(bot.x - MAP/2, bot.y - MAP/2) < 600){
+      bot.x = rnd(300, MAP-300);
+      bot.y = rnd(300, MAP-300);
+    }
+    aiWorms.push(bot);
+  }
 
-  ['speed','magnet','shield','ghost'].forEach(t=>{
+  ['speed','magnet','shield','ghost','zoom'].forEach(t=>{
     const p={id:Math.random().toString(36).slice(2),x:rnd(150,MAP-150),y:rnd(150,MAP-150),type:t};
     powerups[p.id]=p;
   });
@@ -1523,16 +1570,22 @@ function loop(ts){
   lastT=ts;
   globalPhase+=dt*2.5;
   Object.keys(activePU).forEach(k=>{if(activePU[k]>0)activePU[k]-=dt;else activePU[k]=0;});
+  if(spawnInvincibility>0) spawnInvincibility-=dt;
 
   if(player?.alive&&player.head){
     const tx=player.head.x-W/2,ty=player.head.y-H/2;
     cam.x+=(tx-cam.x)*0.18;cam.y+=(ty-cam.y)*0.18;
   }
 
+  let activeScale = camScale;
+  if(activePU.zoom > 0){
+    activeScale = camScale * 0.65;
+  }
+
   ctx.save();
-  if(camScale !== 1.0){
+  if(activeScale !== 1.0){
     ctx.translate(W/2, H/2);
-    ctx.scale(camScale, camScale);
+    ctx.scale(activeScale, activeScale);
     ctx.translate(-W/2, -H/2);
   }
 
@@ -1545,7 +1598,7 @@ function loop(ts){
     aiWorms.forEach(ai=>ai.draw());
     while(Object.keys(foods).length<650){const f=makeLocalFood();foods[f.id]=f;}
     if(Math.random()<0.003&&Object.keys(powerups).length<15){
-      const t=['speed','magnet','shield','ghost'][Math.floor(Math.random()*4)];
+      const t=['speed','magnet','shield','ghost','zoom'][Math.floor(Math.random()*5)];
       const p={id:Math.random().toString(36).slice(2),x:rnd(150,MAP-150),y:rnd(150,MAP-150),type:t};
       powerups[p.id]=p;
     }
