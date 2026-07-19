@@ -484,7 +484,6 @@ window.addEventListener('error', function(e) {
   </div>
 
   <div class="hud-controls-bar">
-    <div class="hud-pill-btn" id="zoomToggleBtn">🔍 <span id="zoomLevelVal">1.0x</span></div>
     <div class="hud-pill-btn" id="nameToggleBtn">🏷️ <span id="nameToggleVal">NAMES ON</span></div>
     <div class="hud-pill-btn" id="soundToggleHudBtn">🔊 SOUND</div>
   </div>
@@ -539,7 +538,7 @@ let socket, myId = null, currentRoom = null, MAP = 5000;
 let player = null, remotePlayers = {}, foods = {}, powerups = {};
 let cam = { x: 0, y: 0 }, mouseW = { x: 0, y: 0 };
 let gameOn = false, isBoosting = false, foodEaten = 0;
-let activePU = { speed: 0, magnet: 0, shield: 0, ghost: 0, zoom: 0 };
+let activePU = { speed: 0, magnet: 0, shield: 0, ghost: 0 };
 let particles = [];
 let playerName = 'SlitherPro';
 let pingMs = 0, raf;
@@ -730,7 +729,6 @@ const PU_META={
   magnet:{icon:'🧲',col:'#00E5FF',lbl:'FOOD MAGNET!',dur:8},
   shield:{icon:'🛡️',col:'#2ecc40',lbl:'SHIELD ON!',  dur:9},
   ghost: {icon:'👻',col:'#CE93D8',lbl:'GHOST MODE!', dur:6},
-  zoom:  {icon:'🔍',col:'#10B981',lbl:'ZOOM RADAR!',  dur:10},
 };
 
 const RANDOM_NAMES = ['SlitherPro','ViperX','GigaWorm','PythonKing','ZoneMaster','NeonBeast','ShadowSnake','TitanCoil','HissLord','AlphaWorm','VenomX','DragonSlither'];
@@ -839,15 +837,7 @@ let W,H;
 function resizeCanvas(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
 resizeCanvas();window.addEventListener('resize',resizeCanvas);
 
-let zoomLevels = [1.0, 0.75, 0.55];
-let zoomIdx = 0;
 let camScale = 1.0;
-
-document.getElementById('zoomToggleBtn').addEventListener('click', () => {
-  zoomIdx = (zoomIdx + 1) % zoomLevels.length;
-  camScale = zoomLevels[zoomIdx];
-  document.getElementById('zoomLevelVal').textContent = camScale.toFixed(2) + 'x';
-});
 
 const pc=document.getElementById('previewCanvas');
 const pctx=pc.getContext('2d');
@@ -1391,7 +1381,7 @@ function checkCols(){
     if(rpHead && player.segs.length > 5){
       for(let j = 2; j < player.segs.length; j++){
         const mySeg = player.segs[j];
-        if(Math.hypot(mySeg.x - rpHead.x, mySeg.y - rpHead.y) < (rp.r + player.r) * 0.85){
+        if(Math.hypot(mySeg.x - rpHead.x, mySeg.y - rpHead.y) < (rp.r + player.r) * 1.15){
           if(isOffline){
             rp.alive = false;
             playKillSound();
@@ -1420,7 +1410,7 @@ function checkCols(){
       const segs = rp.segs || [];
       for(let i = 2; i < segs.length; i++){
         const seg = segs[i];
-        if(Math.hypot(seg.x - player.head.x, seg.y - player.head.y) < (player.r + rp.r) * 0.85){
+        if(Math.hypot(seg.x - player.head.x, seg.y - player.head.y) < (player.r + rp.r) * 0.72){
           if(activePU.shield > 0){
             activePU.shield = 0;
             showPNotif('🛡️ Shield absorbed collision!', '#2ecc40');
@@ -1523,7 +1513,7 @@ document.getElementById('shareGameBtn').addEventListener('click', ()=>{
 // ═══════════════════════════════════════════════════════
 function spawnLocalPlayer(x,y){
   foodEaten=0;particles=[];
-  activePU={speed:0,magnet:0,shield:0,ghost:0,zoom:0};
+  activePU={speed:0,magnet:0,shield:0,ghost:0};
   spawnInvincibility = 3.0; // 3 seconds invincibility on spawn!
   document.getElementById('killFeed').innerHTML='';
   document.getElementById('hudScore').textContent='0';
@@ -1549,7 +1539,7 @@ function startOffline(){
     aiWorms.push(bot);
   }
 
-  ['speed','magnet','shield','ghost','zoom'].forEach(t=>{
+  ['speed','magnet','shield','ghost'].forEach(t=>{
     const p={id:Math.random().toString(36).slice(2),x:rnd(150,MAP-150),y:rnd(150,MAP-150),type:t};
     powerups[p.id]=p;
   });
@@ -1577,15 +1567,10 @@ function loop(ts){
     cam.x+=(tx-cam.x)*0.18;cam.y+=(ty-cam.y)*0.18;
   }
 
-  let activeScale = camScale;
-  if(activePU.zoom > 0){
-    activeScale = camScale * 0.65;
-  }
-
   ctx.save();
-  if(activeScale !== 1.0){
+  if(camScale !== 1.0){
     ctx.translate(W/2, H/2);
-    ctx.scale(activeScale, activeScale);
+    ctx.scale(camScale, camScale);
     ctx.translate(-W/2, -H/2);
   }
 
@@ -1598,7 +1583,7 @@ function loop(ts){
     aiWorms.forEach(ai=>ai.draw());
     while(Object.keys(foods).length<650){const f=makeLocalFood();foods[f.id]=f;}
     if(Math.random()<0.003&&Object.keys(powerups).length<15){
-      const t=['speed','magnet','shield','ghost','zoom'][Math.floor(Math.random()*5)];
+      const t=['speed','magnet','shield','ghost'][Math.floor(Math.random()*4)];
       const p={id:Math.random().toString(36).slice(2),x:rnd(150,MAP-150),y:rnd(150,MAP-150),type:t};
       powerups[p.id]=p;
     }
