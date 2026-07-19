@@ -1,0 +1,13 @@
+node_modules/
+server/node_modules/
+.DS_Store
+*.log
+.system_generated/
+Library/
+Temp/
+Logs/
+UserSettings/
+WormsZoneClone/Library/
+WormsZoneClone/Temp/
+WormsZoneClone/Logs/
+WormsZoneClone/UserSettings/
