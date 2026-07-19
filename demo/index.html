@@ -533,6 +533,23 @@ window.addEventListener('error', function(e) {
 'use strict';
 
 // ═══════════════════════════════════════════════════════
+//  GLOBAL STATE & LIFELINES (DEFINED AT THE TOP TO PREVENT TDZ CRASHES)
+// ═══════════════════════════════════════════════════════
+let socket, myId = null, currentRoom = null, MAP = 5000;
+let player = null, remotePlayers = {}, foods = {}, powerups = {};
+let cam = { x: 0, y: 0 }, mouseW = { x: 0, y: 0 };
+let gameOn = false, isBoosting = false, foodEaten = 0;
+let activePU = { speed: 0, magnet: 0, shield: 0, ghost: 0 };
+let particles = [];
+let playerName = 'SlitherPro';
+let pingMs = 0, raf;
+let isOffline = false, aiWorms = [];
+let lastJoinData = null;
+let globalPhase = 0;
+let revivesLeft = 2;
+
+
+// ═══════════════════════════════════════════════════════
 //  WEB AUDIO API SOUND EFFECTS ENGINE (ZERO LATENCY)
 // ═══════════════════════════════════════════════════════
 const AudioCtx = window.AudioContext || window.webkitAudioContext || null;
@@ -892,21 +909,6 @@ function drawMenuBg(){
 }
 drawMenuBg();
 
-// ═══════════════════════════════════════════════════════
-//  STATE & LIFELINES
-// ═══════════════════════════════════════════════════════
-let socket,myId=null,currentRoom=null,MAP=5000;
-let player=null,remotePlayers={},foods={},powerups={};
-let cam={x:0,y:0},mouseW={x:0,y:0};
-let gameOn=false,isBoosting=false,foodEaten=0;
-let activePU={speed:0,magnet:0,shield:0,ghost:0};
-let particles=[];
-let playerName='SlitherPro';
-let pingMs=0,raf;
-let isOffline=false,aiWorms=[];
-let lastJoinData=null;
-let globalPhase=0;
-let revivesLeft = 2;
 
 const nameInput = document.getElementById('playerNameInput');
 nameInput.addEventListener('input', () => {
