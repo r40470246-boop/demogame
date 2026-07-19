@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#060612">
 <link rel="manifest" href="/manifest.json">
-<title>Worms Zone PRO Edition</title>
+<title>Worms Zone PRO</title>
 <style>
 /* ─── RESET & BASE ─── */
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
@@ -53,7 +53,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
   #rotatePrompt{display:flex;}
 }
 
-/* ═══ PRO ARCADE HOME SCREEN ═══ */
+/* ═══ CLEAN PRO HOME SCREEN ═══ */
 #homeScreen{
   background:radial-gradient(ellipse 90% 70% at 50% 20%, #162447 0%, #080d1a 60%, #04060d 100%);
   padding:env(safe-area-inset-top,10px) 0 env(safe-area-inset-bottom,12px);
@@ -68,11 +68,9 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
   max-width:520px;
 }
 
-.game-title-banner{
-  text-align:center;margin-top:4px;
-}
+.game-title-banner{text-align:center;margin-top:4px;}
 .game-title-banner h1{
-  font-size:clamp(32px, 7vw, 54px);
+  font-size:clamp(30px, 6vw, 50px);
   font-weight:900;
   line-height:1;
   background:linear-gradient(135deg,#00f5a0 0%,#00d9f5 50%,#7b2ff7 100%);
@@ -105,10 +103,10 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 .icon-btn:active{transform:scale(0.92);background:rgba(255,255,255,0.18);}
 
 /* Worm Canvas Preview */
-.worm-preview{height:100px;width:100%;max-width:500px;overflow:hidden;margin:4px 0;}
+.worm-preview{height:95px;width:100%;max-width:500px;overflow:hidden;margin:2px 0;}
 .worm-canvas{width:100%;height:100%;}
 
-/* PRO Name Edit Section */
+/* Name Edit Input */
 .name-section{width:100%;padding:0 20px;text-align:center;max-width:480px;}
 .name-card{
   background:rgba(255,255,255,0.06);
@@ -131,12 +129,12 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 }
 .rand-name-btn:active{transform:scale(0.9);}
 
-/* Map Theme Selector */
-.map-selector-row{display:flex;gap:8px;margin-top:10px;padding:0 20px;width:100%;max-width:480px;}
+/* Map Selector */
+.map-selector-row{display:flex;gap:8px;margin-top:8px;padding:0 20px;width:100%;max-width:480px;}
 .map-select-btn{
   flex:1;background:rgba(255,255,255,0.05);
   border:1.5px solid rgba(255,255,255,0.1);
-  border-radius:14px;padding:9px 6px;
+  border-radius:14px;padding:8px 6px;
   color:#888;font-size:11px;font-weight:800;
   cursor:pointer;text-align:center;
   transition:all .2s;
@@ -147,9 +145,9 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
   box-shadow:0 0 12px rgba(0,245,160,0.25);
 }
 
-/* Customizer Tabs: Skins & Face Skins */
-.customizer-section{width:100%;padding:0 20px;margin-top:10px;max-width:480px;}
-.tab-header{display:flex;gap:10px;margin-bottom:8px;}
+/* Customizer Tabs */
+.customizer-section{width:100%;padding:0 20px;margin-top:8px;max-width:480px;}
+.tab-header{display:flex;gap:8px;margin-bottom:8px;}
 .tab-btn{
   flex:1;background:rgba(255,255,255,0.05);
   border:1px solid rgba(255,255,255,0.1);
@@ -177,7 +175,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 .item-name{font-size:9px;color:#777;text-align:center;white-space:nowrap;}
 
 /* PRO Arcade Play Buttons */
-.play-section{width:100%;padding:0 20px;display:flex;flex-direction:column;gap:10px;margin-top:12px;max-width:480px;}
+.play-section{width:100%;padding:0 20px;display:flex;flex-direction:column;gap:10px;margin-top:10px;max-width:480px;}
 .btn-play{
   width:100%;border:none;border-radius:18px;
   padding:16px;font-size:17px;font-weight:900;
@@ -258,6 +256,18 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 .lbs{color:#ffd700;font-weight:700;font-size:10px;}
 .lbe.me .lbn{color:#7df;font-weight:700;}
 
+/* Zoom Toggle Button on HUD */
+.zoom-toggle-btn{
+  position:absolute;bottom:20px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,0.75);border:1px solid rgba(0,245,160,0.4);
+  border-radius:20px;padding:6px 16px;
+  font-size:12px;font-weight:900;color:#00f5a0;
+  pointer-events:auto;cursor:pointer;backdrop-filter:blur(8px);
+  box-shadow:0 0 15px rgba(0,245,160,0.2);
+  display:flex;align-items:center;gap:6px;
+}
+.zoom-toggle-btn:active{transform:translateX(-50%) scale(0.93);}
+
 .room-badge{
   position:absolute;top:env(safe-area-inset-top,8px);left:50%;transform:translateX(-50%);
   background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.14);
@@ -265,17 +275,6 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
   font-size:12px;font-weight:800;letter-spacing:1px;
   pointer-events:auto;backdrop-filter:blur(8px);cursor:pointer;
 }
-
-#twoFingerBoostNotice{
-  position:fixed;bottom:25px;left:50%;transform:translateX(-50%);
-  background:linear-gradient(135deg,#ff9500,#ff5e00);color:#000;
-  padding:6px 20px;border-radius:20px;
-  font-size:12px;font-weight:900;
-  z-index:60;pointer-events:none;
-  opacity:0;transition:opacity .2s;
-  letter-spacing:1px;box-shadow:0 0 15px rgba(255,149,0,0.5);
-}
-#twoFingerBoostNotice.active{opacity:1;}
 
 #pnotif{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);border:1px solid rgba(255,255,255,0.18);border-radius:30px;padding:8px 22px;font-size:15px;font-weight:800;z-index:60;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap;}
 #killFeed{position:fixed;bottom:70px;left:12px;z-index:50;pointer-events:none;display:flex;flex-direction:column;gap:3px;}
@@ -321,16 +320,21 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 }
 #twoFingerFlash.show{opacity:1;}
 
-/* ── GAME OVER ── */
+/* ── GAME OVER & REVIVE LIFELINE ── */
 #gameOverScreen{background:rgba(0,0,0,0.92);backdrop-filter:blur(12px);padding:30px 24px env(safe-area-inset-bottom,30px);}
 #gameOverScreen h2{font-size:clamp(28px,8vw,46px);font-weight:900;text-align:center;margin-bottom:20px;}
-.go-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:340px;margin-bottom:24px;}
-.go-box{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:16px 10px;text-align:center;}
+.go-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:340px;margin-bottom:20px;}
+.go-box{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:14px 10px;text-align:center;}
 .go-box .gl{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;}
-.go-box .gv{font-size:26px;font-weight:900;}
-.go-btns{display:flex;flex-direction:column;gap:10px;width:100%;max-width:300px;}
-.go-btn{border:none;border-radius:16px;padding:16px;font-size:17px;font-weight:800;cursor:pointer;transition:transform .12s;}
+.go-box .gv{font-size:24px;font-weight:900;}
+.go-btns{display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px;}
+.go-btn{border:none;border-radius:16px;padding:16px;font-size:16px;font-weight:800;cursor:pointer;transition:transform .12s;}
 .go-btn:active{transform:scale(.97);}
+.go-btn-revive{
+  background:linear-gradient(135deg,#ff3b30 0%,#ff9500 100%);
+  color:#fff;font-weight:900;box-shadow:0 0 20px rgba(255,59,48,0.5);
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
 .go-btn-main{background:linear-gradient(135deg,#00f5a0,#00d5e0);color:#000;}
 .go-btn-sec{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:#ccc;}
 
@@ -390,7 +394,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 
   <canvas id="previewCanvas" class="worm-canvas worm-preview"></canvas>
 
-  <!-- Big Prominent PRO Name Input -->
+  <!-- Name Input -->
   <div class="name-section">
     <div class="name-card">
       <input type="text" id="playerNameInput" placeholder="Apna Name Likho..." maxlength="14" value="SlitherPro">
@@ -406,11 +410,11 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
     <div class="map-select-btn" data-map="8000" data-theme="mega">🌋 Infinite (8k)</div>
   </div>
 
-  <!-- Customizer Tabs: Skins & Face Skins -->
+  <!-- Customizer Tabs -->
   <div class="customizer-section">
     <div class="tab-header">
       <div class="tab-btn active" id="tabSkins">🎨 Body Skins</div>
-      <div class="tab-btn" id="tabFaces">😎 Face Glasses & Hats</div>
+      <div class="tab-btn" id="tabFaces">😎 Face Glasses</div>
       <button id="fruitBtn" style="background:linear-gradient(135deg,#ff6b00,#ff9500);border:none;border-radius:10px;padding:4px 10px;color:#fff;font-size:11px;font-weight:800;cursor:pointer;">🍎 Fruits</button>
     </div>
 
@@ -423,7 +427,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 
   <!-- PRO Arcade Play Buttons -->
   <div class="play-section">
-    <button class="btn-play btn-offline" id="offlineBtn">🤖 PLAY OFFLINE (SMART BOTS)</button>
+    <button class="btn-play btn-offline" id="offlineBtn">🤖 PLAY OFFLINE (28 SMART BOTS)</button>
     <div class="btn-row">
       <button class="btn-play btn-quick" id="quickPlayBtn">🚀 QUICK PLAY (ONLINE)</button>
       <button class="btn-play btn-rooms" id="roomsBtn">🏠 ROOMS</button>
@@ -469,10 +473,13 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
       <div id="lbEntries"></div>
     </div>
   </div>
+
+  <!-- Dynamic Camera Zoom Toggle -->
+  <div class="zoom-toggle-btn" id="zoomToggleBtn">🔍 ZOOM: <span id="zoomLevelVal">1.0x</span></div>
+
   <div class="room-badge" id="roomBadge" style="display:none;" title="Click to copy room link"></div>
 </div>
 
-<div id="twoFingerBoostNotice">⚡ 2-FINGER BOOST!</div>
 <div id="pnotif"></div>
 <div id="twoFingerFlash"></div>
 <div id="pBars"></div>
@@ -487,7 +494,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
   <div id="rightJoyBg" class="joy-outer"><div id="rightJoyHandle" class="joy-inner"></div></div>
 </div>
 
-<!-- GAME OVER SCREEN -->
+<!-- GAME OVER SCREEN WITH 2 REVIVE LIFELINES -->
 <div id="gameOverScreen" class="screen">
   <h2 id="goTitle">☠️ GAME OVER</h2>
   <div class="go-stats">
@@ -497,7 +504,8 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
     <div class="go-box"><div class="gl">Best</div><div class="gv" id="goBest">0</div></div>
   </div>
   <div class="go-btns">
-    <button class="go-btn go-btn-main" id="replayBtn">🔄 Phir Khelo!</button>
+    <button class="go-btn go-btn-revive" id="reviveBtn">❤️ EXTRA LIFE REVIVE (<span id="revivesLeftVal">2</span> Left)</button>
+    <button class="go-btn go-btn-main" id="replayBtn">🔄 Phir Khelo (New Match)</button>
     <button class="go-btn go-btn-sec" id="homeBtn">🏠 Main Menu</button>
   </div>
 </div>
@@ -599,12 +607,11 @@ const PU_META={
 };
 
 const RANDOM_NAMES = ['SlitherPro','ViperX','GigaWorm','PythonKing','ZoneMaster','NeonBeast','ShadowSnake','TitanCoil','HissLord','AlphaWorm','VenomX','DragonSlither'];
-const AI_NAMES=['SnakeKing','WormPro','CoilMaster','SlitherX','ZoneBoss','HissKing','BoomWorm','NeonSnek','GigaWorm','VenomBoss','TitanWorm','MegaSlither'];
+const AI_NAMES=['SnakeKing','WormPro','CoilMaster','SlitherX','ZoneBoss','HissKing','BoomWorm','NeonSnek','GigaWorm','VenomBoss','TitanWorm','MegaSlither','ApexPredator','MonsterSnake','ShadowCoil','GoldenSlither','ViperKing','AlphaPython','HydraX','BehemothWorm'];
 
 let selectedSkin=0;
 let selectedFace='glasses';
 
-// Render Skins list
 const skinsView = document.getElementById('skinsView');
 SKINS.forEach((s,i)=>{
   const item=document.createElement('div');item.className='custom-item';
@@ -618,7 +625,6 @@ SKINS.forEach((s,i)=>{
   skinsView.appendChild(item);
 });
 
-// Render Face Accessories list
 const facesView = document.getElementById('facesView');
 FACE_SKINS.forEach((f,i)=>{
   const item=document.createElement('div');item.className='custom-item';
@@ -632,7 +638,6 @@ FACE_SKINS.forEach((f,i)=>{
   facesView.appendChild(item);
 });
 
-// Customizer Tabs Toggle
 document.getElementById('tabSkins').addEventListener('click', () => {
   document.getElementById('tabSkins').classList.add('active');
   document.getElementById('tabFaces').classList.remove('active');
@@ -646,14 +651,12 @@ document.getElementById('tabFaces').addEventListener('click', () => {
   skinsView.style.display = 'none';
 });
 
-// Random name generator
 document.getElementById('randNameBtn').addEventListener('click', () => {
   const rName = RANDOM_NAMES[Math.floor(Math.random()*RANDOM_NAMES.length)];
   document.getElementById('playerNameInput').value = rName;
   playerName = rName;
 });
 
-// Map theme setup
 let selectedMapSize = 5000;
 let selectedTheme = 'dark';
 document.querySelectorAll('.map-select-btn').forEach(btn => {
@@ -665,7 +668,6 @@ document.querySelectorAll('.map-select-btn').forEach(btn => {
   });
 });
 
-// High score management
 let highScore = parseInt(localStorage.getItem('wz_highscore')||'0');
 document.getElementById('highScoreVal').textContent = highScore;
 
@@ -678,13 +680,24 @@ function updateHighScore(score){
 }
 
 // ═══════════════════════════════════════════════════════
-//  CANVAS & PREVIEW
+//  CANVAS & PREVIEW & DYNAMIC CAMERA ZOOM
 // ═══════════════════════════════════════════════════════
 const canvas=document.getElementById('canvas');
 const ctx=canvas.getContext('2d');
 let W,H;
 function resizeCanvas(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
 resizeCanvas();window.addEventListener('resize',resizeCanvas);
+
+// Camera Zoom Setup
+let zoomLevels = [1.0, 0.75, 0.55];
+let zoomIdx = 0;
+let camScale = 1.0;
+
+document.getElementById('zoomToggleBtn').addEventListener('click', () => {
+  zoomIdx = (zoomIdx + 1) % zoomLevels.length;
+  camScale = zoomLevels[zoomIdx];
+  document.getElementById('zoomLevelVal').textContent = camScale.toFixed(2) + 'x';
+});
 
 const pc=document.getElementById('previewCanvas');
 const pctx=pc.getContext('2d');
@@ -712,7 +725,7 @@ function updatePreview(){
 (function previewLoop(){prevPhase+=0.04;updatePreview();requestAnimationFrame(previewLoop);})();
 
 // ═══════════════════════════════════════════════════════
-//  STATE
+//  STATE & LIFELINES
 // ═══════════════════════════════════════════════════════
 let socket,myId=null,currentRoom=null,MAP=5000;
 let player=null,remotePlayers={},foods={},powerups={};
@@ -725,6 +738,7 @@ let pingMs=0,raf;
 let isOffline=false,aiWorms=[];
 let lastJoinData=null;
 let globalPhase=0;
+let revivesLeft = 2; // 2 Extra Life Revives!
 
 const nameInput = document.getElementById('playerNameInput');
 nameInput.addEventListener('input', () => {
@@ -828,12 +842,12 @@ class RemotePlayer{
     this.interpolate();
     const sk=SKINS[this.skin]||SKINS[0],r=this.r;
     const hx=this.x-cam.x,hy=this.y-cam.y;
-    if(hx<-120||hx>W+120||hy<-120||hy>H+120)return;
+    if(hx<-150||hx>W+150||hy<-150||hy>H+150)return;
     ctx.save();
     const ds=this.segs.slice(0,60);
     for(let i=ds.length-1;i>=0;i--){
       const seg=ds[i],sx=seg.x-cam.x,sy=seg.y-cam.y;
-      if(sx<-30||sx>W+30||sy<-30||sy>H+30)continue;
+      if(sx<-50||sx>W+50||sy<-50||sy>H+50)continue;
       const t=i/ds.length,sr=r*(1-t*0.3);
       ctx.beginPath();ctx.arc(sx,sy,sr,0,Math.PI*2);
       ctx.fillStyle=i===0?sk.h:sk.b;ctx.shadowColor=sk.g;ctx.shadowBlur=i===0?16:3;ctx.globalAlpha=i===0?1:0.72+t*0.28;ctx.fill();
@@ -847,7 +861,7 @@ class RemotePlayer{
 }
 
 // ═══════════════════════════════════════════════════════
-//  LOCAL PLAYER
+//  LOCAL PLAYER (BOOST SCORE DRAIN & TAIL FOOD DROPS)
 // ═══════════════════════════════════════════════════════
 class LocalWorm{
   constructor(x,y,skin,faceStyle,name){
@@ -877,9 +891,20 @@ class LocalWorm{
     nx=Math.max(mg,Math.min(MAP-mg,nx));ny=Math.max(mg,Math.min(MAP-mg,ny));
     this.segs.unshift({x:nx,y:ny});this.segs.pop();
 
+    // Boosting drains points & drops tail food like original game!
     if(boosting){
       this.boostAcc+=dt;
-      if(this.boostAcc>0.24){this.boostAcc=0;this.segs.pop();this.score=Math.max(0,this.score-1);}
+      if(this.boostAcc>0.16){
+        this.boostAcc=0;
+        this.score=Math.max(0,this.score-1);
+        if(this.score%5===0&&this.segs.length>16){this.segs.pop();}
+        // Drop food item behind tail!
+        const tail = this.segs[this.segs.length-1];
+        if(tail){
+          const f = makeLocalFood(tail.x + rnd(-8,8), tail.y + rnd(-8,8));
+          f.val = 5; foods[f.id] = f;
+        }
+      }
     }
     if(activePU.magnet>0){
       Object.values(foods).forEach(f=>{
@@ -894,7 +919,7 @@ class LocalWorm{
     ctx.save();
     for(let i=this.segs.length-1;i>=0;i--){
       const seg=this.segs[i],sx=seg.x-cam.x,sy=seg.y-cam.y;
-      if(sx<-30||sx>W+30||sy<-30||sy>H+30)continue;
+      if(sx<-50||sx>W+50||sy<-50||sy>H+50)continue;
       const t=i/this.segs.length,sr=r*(1-t*0.3);
       ctx.beginPath();ctx.arc(sx,sy,sr,0,Math.PI*2);
       ctx.fillStyle=i===0?sk.h:sk.b;ctx.shadowColor=sk.g;ctx.shadowBlur=i===0?22:5;ctx.globalAlpha=i===0?1:0.72+t*0.28;ctx.fill();
@@ -926,19 +951,17 @@ class LocalWorm{
 }
 
 // ═══════════════════════════════════════════════════════
-//  FACE SKINS & ACCESSORIES DRAWING
+//  FACE SKINS DRAWING
 // ═══════════════════════════════════════════════════════
 function drawEyesAndFaceOnCtx(targetCtx, hx, hy, angle, r, faceStyle){
   const er=r*0.27,eo=r*0.38;
 
-  // Base Eyes
   [[angle-0.7],[angle+0.7]].forEach(([a])=>{
     const ex=hx+Math.cos(a)*eo,ey=hy+Math.sin(a)*eo;
     targetCtx.beginPath();targetCtx.arc(ex,ey,er,0,Math.PI*2);targetCtx.fillStyle='#fff';targetCtx.shadowBlur=0;targetCtx.fill();
     targetCtx.beginPath();targetCtx.arc(ex+Math.cos(angle)*er*0.4,ey+Math.sin(angle)*er*0.4,er*0.5,0,Math.PI*2);targetCtx.fillStyle='#111';targetCtx.fill();
   });
 
-  // Face Emoji Item overlay
   const fItem = FACE_SKINS.find(f => f.id === faceStyle);
   if(fItem && fItem.emoji && fItem.id !== 'default'){
     targetCtx.save();
@@ -951,23 +974,22 @@ function drawEyesAndFaceOnCtx(targetCtx, hx, hy, angle, r, faceStyle){
 }
 
 // ═══════════════════════════════════════════════════════
-//  RANDOM VARYING SIZED AI BOTS (SMALL TO GIGANTIC)
+//  AI BOTS (28 BOTS WITH VARIOUS SIZES)
 // ═══════════════════════════════════════════════════════
 class AIWorm{
   constructor(i){
     const skin=(selectedSkin+i+1)%SKINS.length;
-    this.skin=skin;this.name=AI_NAMES[i]||'Bot'+i;
+    this.skin=skin;this.name=AI_NAMES[i % AI_NAMES.length]||('Bot'+i);
     this.faceStyle=FACE_SKINS[i % FACE_SKINS.length].id;
     this.x=rnd(300,MAP-300);this.y=rnd(300,MAP-300);
     this.angle=Math.random()*Math.PI*2;
     this.alive=true;
 
-    // Random sizes: some small, medium, large, and GIGANTIC!
     let initLen = 20;
-    if(i === 0 || i === 1) initLen = 350 + Math.floor(Math.random()*250); // GIGANTIC MONSTER BOTS!
-    else if(i < 5) initLen = 120 + Math.floor(Math.random()*150); // Large
-    else if(i < 10) initLen = 50 + Math.floor(Math.random()*60); // Medium
-    else initLen = 15 + Math.floor(Math.random()*25); // Small
+    if(i < 3) initLen = 450 + Math.floor(Math.random()*300); // GIGANTIC MONSTER BOTS!
+    else if(i < 9) initLen = 150 + Math.floor(Math.random()*160);
+    else if(i < 18) initLen = 60 + Math.floor(Math.random()*70);
+    else initLen = 18 + Math.floor(Math.random()*25);
 
     this.score = initLen * 18;
     this.aiTimer=0;this.target=null;this.tr=0.04+Math.random()*0.02;
@@ -984,7 +1006,7 @@ class AIWorm{
       this.aiTimer=0.4+Math.random()*0.8;
       let best=null,bd=99999;
       Object.values(foods).forEach((f, idx)=>{
-        if(idx%3===0){
+        if(idx%4===0){
           const d=Math.hypot(f.x-this.head.x,f.y-this.head.y);
           const priority = d / (f.val > 15 ? 2 : 1);
           if(priority<bd){bd=priority;best=f;}
@@ -1022,12 +1044,12 @@ class AIWorm{
     if(!this.alive)return;
     const sk=SKINS[this.skin]||SKINS[0],r=this.r;
     const hx=this.head.x-cam.x,hy=this.head.y-cam.y;
-    if(hx<-120||hx>W+120||hy<-120||hy>H+120)return;
+    if(hx<-150||hx>W+150||hy<-150||hy>H+150)return;
     ctx.save();
     const ds=this.segs.slice(0,60);
     for(let i=ds.length-1;i>=0;i--){
       const seg=ds[i],sx=seg.x-cam.x,sy=seg.y-cam.y;
-      if(sx<-30||sx>W+30||sy<-30||sy>H+30)continue;
+      if(sx<-50||sx>W+50||sy<-50||sy>H+50)continue;
       const t=i/ds.length,sr=r*(1-t*0.3);
       ctx.beginPath();ctx.arc(sx,sy,sr,0,Math.PI*2);
       ctx.fillStyle=i===0?sk.h:sk.b;ctx.shadowColor=sk.g;ctx.shadowBlur=i===0?14:3;ctx.globalAlpha=i===0?1:0.72+t*0.28;ctx.fill();
@@ -1059,7 +1081,7 @@ function drawFoods(){
     if(f.vx){f.x+=f.vx;f.y+=f.vy;f.vx*=0.82;f.vy*=0.82;f.x=Math.max(10,Math.min(MAP-10,f.x));f.y=Math.max(10,Math.min(MAP-10,f.y));}
 
     const sx=f.x-cam.x,sy=f.y-cam.y;
-    if(sx < -60 || sx > W+60 || sy < -60 || sy > H+60) return;
+    if(sx < -80 || sx > W+80 || sy < -80 || sy > H+80) return;
 
     f.phase=(f.phase||0)+0.04;
     const bob=Math.sin(f.phase)*3.0;
@@ -1122,12 +1144,12 @@ function drawMap(){
 }
 
 // ═══════════════════════════════════════════════════════
-//  BOTH-WAYS COLLISION DETECTOR (WHEN OTHER SNAKES TOUCH ME, THEY DIE!)
+//  EXACT HEAD-TO-BODY COLLISION DETECTOR
 // ═══════════════════════════════════════════════════════
 function checkCols(){
   if(!player?.alive)return;
 
-  // Food collisions
+  // Food
   Object.entries(foods).forEach(([id,f])=>{
     const ft=FRUIT_TYPES.find(t=>t.id===f.fruitId)||FRUIT_TYPES[0];
     if(Math.hypot(f.x-player.head.x,f.y-player.head.y)<player.r+ft.r+3){
@@ -1139,7 +1161,7 @@ function checkCols(){
     }
   });
 
-  // Powerup collisions
+  // Powerup
   Object.entries(powerups).forEach(([id,pu])=>{
     if(Math.hypot(pu.x-player.head.x,pu.y-player.head.y)<player.r+22){
       delete powerups[id];
@@ -1150,34 +1172,31 @@ function checkCols(){
 
   if(activePU.ghost>0)return;
 
-  // Snake collisions
+  // Snakes Head-to-Body Collision
   const others=isOffline?aiWorms:Object.values(remotePlayers);
 
   for(let idx = 0; idx < others.length; idx++){
     const rp = others[idx];
     if(!rp || rp.alive === false) continue;
 
-    // 1. OTHER SNAKE HEAD HITS MY BODY -> OTHER SNAKE DIES & TURNS TO FOOD!
+    // 1. OTHER SNAKE HEAD HITS MY BODY -> OTHER SNAKE DIES & DROPS FOOD!
     const rpHead = rp.head || { x: rp.x, y: rp.y };
     if(rpHead && player.segs.length > 5){
       for(let j = 4; j < player.segs.length; j += 2){
         const mySeg = player.segs[j];
-        if(Math.hypot(mySeg.x - rpHead.x, mySeg.y - rpHead.y) < (rp.r || 12) + player.r * 0.7){
-          // OTHER SNAKE DIES!
+        if(Math.hypot(mySeg.x - rpHead.x, mySeg.y - rpHead.y) < (rp.r || 12) * 0.75 + player.r * 0.75){
           if(isOffline){
             rp.alive = false;
-            // Drop food from bot's body!
             rp.segs.forEach((s, k) => {
               if(k % 2 === 0){
                 const f = makeLocalFood(s.x, s.y);
-                f.val = 30 + Math.floor(Math.random()*40); // Massive food drop!
+                f.val = 30 + Math.floor(Math.random()*40);
                 foods[f.id] = f;
               }
             });
             addParticles(rpHead.x, rpHead.y, SKINS[rp.skin]?.h || '#ff4136', 30);
             addKF('💥 You eliminated ' + rp.name + '!');
             showPNotif('💥 +1 Kill! (' + rp.name + ' eliminated)', '#00f5a0');
-            // Respawn bot after a delay so arena stays populated
             setTimeout(() => {
               const newBot = new AIWorm(Math.floor(Math.random()*AI_NAMES.length));
               others[idx] = newBot;
@@ -1193,7 +1212,7 @@ function checkCols(){
       const segs = rp.segs || [];
       for(let i = 4; i < segs.length; i += 2){
         const seg = segs[i];
-        if(Math.hypot(seg.x - player.head.x, seg.y - player.head.y) < player.r + 6){
+        if(Math.hypot(seg.x - player.head.x, seg.y - player.head.y) < player.r * 0.7 + (rp.r||12) * 0.7){
           if(activePU.shield > 0){
             activePU.shield = 0;
             showPNotif('🛡️ Shield absorbed collision!', '#2ecc40');
@@ -1262,7 +1281,7 @@ document.getElementById('shareGameBtn').addEventListener('click', ()=>{
 });
 
 // ═══════════════════════════════════════════════════════
-//  SPAWN & START
+//  SPAWN & START & REVIVE LIFELINES
 // ═══════════════════════════════════════════════════════
 function spawnLocalPlayer(x,y){
   foodEaten=0;particles=[];activePU={speed:0,magnet:0,shield:0,ghost:0};
@@ -1276,11 +1295,11 @@ function spawnLocalPlayer(x,y){
 
 function startOffline(){
   isOffline=true;myId='local';currentRoom=null;MAP=selectedMapSize;
+  revivesLeft = 2; // Reset extra lives to 2 per game!
   foods={};powerups={};aiWorms=[];remotePlayers={};
-  for(let i=0;i<500;i++){const f=makeLocalFood();foods[f.id]=f;}
 
-  // Spawn 16 Bots with random sizes (small to gigantic!)
-  for(let i=0;i<16;i++) aiWorms.push(new AIWorm(i));
+  for(let i=0;i<650;i++){const f=makeLocalFood();foods[f.id]=f;}
+  for(let i=0;i<28;i++) aiWorms.push(new AIWorm(i));
 
   ['speed','magnet','shield','ghost'].forEach(t=>{
     const p={id:Math.random().toString(36).slice(2),x:rnd(150,MAP-150),y:rnd(150,MAP-150),type:t};
@@ -1294,7 +1313,7 @@ function startOffline(){
 }
 
 // ═══════════════════════════════════════════════════════
-//  GAME LOOP
+//  GAME LOOP WITH CAMERA ZOOM
 // ═══════════════════════════════════════════════════════
 let lastT=0,sendTimer=0;
 function loop(ts){
@@ -1309,6 +1328,14 @@ function loop(ts){
     cam.x+=(tx-cam.x)*0.18;cam.y+=(ty-cam.y)*0.18;
   }
 
+  // Camera Zoom Transformation
+  ctx.save();
+  if(camScale !== 1.0){
+    ctx.translate(W/2, H/2);
+    ctx.scale(camScale, camScale);
+    ctx.translate(-W/2, -H/2);
+  }
+
   drawMap();
   drawFoods();
   drawPowerups();
@@ -1316,8 +1343,8 @@ function loop(ts){
   if(isOffline){
     aiWorms.forEach(ai=>ai.update(dt));
     aiWorms.forEach(ai=>ai.draw());
-    while(Object.keys(foods).length<500){const f=makeLocalFood();foods[f.id]=f;}
-    if(Math.random()<0.002&&Object.keys(powerups).length<12){
+    while(Object.keys(foods).length<650){const f=makeLocalFood();foods[f.id]=f;}
+    if(Math.random()<0.003&&Object.keys(powerups).length<15){
       const t=['speed','magnet','shield','ghost'][Math.floor(Math.random()*4)];
       const p={id:Math.random().toString(36).slice(2),x:rnd(150,MAP-150),y:rnd(150,MAP-150),type:t};
       powerups[p.id]=p;
@@ -1331,6 +1358,8 @@ function loop(ts){
   drawParticles();
   checkCols();
   drawPUBars();
+
+  ctx.restore();
 
   if(!isOffline){
     sendTimer+=dt;
@@ -1357,11 +1386,36 @@ function showGameOverScreen(){
   document.getElementById('goSz').textContent=player?.size||0;
   document.getElementById('goRk').textContent='#'+rank;
   document.getElementById('goBest').textContent=highScore;
+
+  // Revive button handling
+  const reviveBtn = document.getElementById('reviveBtn');
+  document.getElementById('revivesLeftVal').textContent = revivesLeft;
+  if(revivesLeft > 0){
+    reviveBtn.style.display = 'flex';
+  } else {
+    reviveBtn.style.display = 'none';
+  }
+
   document.getElementById('gameHUD').style.display='none';
   document.getElementById('leftJoyZone').style.display='none';
   document.getElementById('rightJoyZone').style.display='none';
   showScreen('gameOverScreen');
 }
+
+// Revive Extra Life Button Click
+document.getElementById('reviveBtn').addEventListener('click', () => {
+  if(revivesLeft > 0){
+    revivesLeft--;
+    document.getElementById('revivesLeftVal').textContent = revivesLeft;
+    player.alive = true;
+    showGame();
+    gameOn = true;
+    lastT = performance.now();
+    showPNotif('❤️ REVIVED WITH EXTRA LIFE!', '#ff3b30');
+    if(raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(loop);
+  }
+});
 
 function renderRoomList(list){
   const el=document.getElementById('roomList');
@@ -1441,16 +1495,13 @@ const JR = 48;
 
 function updateDoubleFingerBoost(){
   const touchCount = Object.keys(activeTouches).length;
-  const notice = document.getElementById('twoFingerBoostNotice');
   const flash = document.getElementById('twoFingerFlash');
 
   if(touchCount >= 2){
     isBoosting = true;
-    notice.classList.add('active');
     flash.classList.add('show');
   } else {
     isBoosting = false;
-    notice.classList.remove('active');
     flash.classList.remove('show');
   }
 }
