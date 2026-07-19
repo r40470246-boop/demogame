@@ -33,7 +33,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
   z-index:100;
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
-  background:#060612;
+  background:transparent;
 }
 .screen.active{display:flex;}
 
@@ -53,9 +53,9 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
   #rotatePrompt{display:flex;}
 }
 
-/* ═══ CLEAN PRO HOME SCREEN ═══ */
+/* ═══ CLEAN DYNAMIC HOME SCREEN ═══ */
 #homeScreen{
-  background:radial-gradient(ellipse 90% 70% at 50% 20%, #162447 0%, #080d1a 60%, #04060d 100%);
+  background:radial-gradient(ellipse 90% 70% at 50% 20%, rgba(22,36,71,0.95) 0%, rgba(8,13,26,0.98) 60%, rgba(4,6,13,1) 100%);
   padding:env(safe-area-inset-top,10px) 0 env(safe-area-inset-bottom,12px);
 }
 
@@ -68,7 +68,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
   max-width:520px;
 }
 
-.game-title-banner{text-align:center;margin-top:4px;}
+.game-title-banner{text-align:center;margin-top:2px;}
 .game-title-banner h1{
   font-size:clamp(30px, 6vw, 50px);
   font-weight:900;
@@ -256,17 +256,19 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 .lbs{color:#ffd700;font-weight:700;font-size:10px;}
 .lbe.me .lbn{color:#7df;font-weight:700;}
 
-/* Zoom Toggle Button on HUD */
-.zoom-toggle-btn{
+/* Dynamic Controls & Sound Buttons on HUD */
+.hud-controls-bar{
   position:absolute;bottom:20px;left:50%;transform:translateX(-50%);
-  background:rgba(0,0,0,0.75);border:1px solid rgba(0,245,160,0.4);
-  border-radius:20px;padding:6px 16px;
-  font-size:12px;font-weight:900;color:#00f5a0;
-  pointer-events:auto;cursor:pointer;backdrop-filter:blur(8px);
-  box-shadow:0 0 15px rgba(0,245,160,0.2);
-  display:flex;align-items:center;gap:6px;
+  display:flex;gap:10px;pointer-events:auto;
 }
-.zoom-toggle-btn:active{transform:translateX(-50%) scale(0.93);}
+.hud-pill-btn{
+  background:rgba(0,0,0,0.8);border:1px solid rgba(255,255,255,0.18);
+  border-radius:20px;padding:6px 14px;
+  font-size:12px;font-weight:900;color:#fff;
+  cursor:pointer;backdrop-filter:blur(8px);
+  display:flex;align-items:center;gap:5px;
+}
+.hud-pill-btn:active{transform:scale(0.93);}
 
 .room-badge{
   position:absolute;top:env(safe-area-inset-top,8px);left:50%;transform:translateX(-50%);
@@ -384,6 +386,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <div id="homeScreen" class="screen active">
   <div class="home-header">
     <div class="high-score-pill">🏆 BEST: <span id="highScoreVal">0</span></div>
+    <div class="icon-btn" id="soundToggleMenuBtn" title="Sound Mute/Unmute">🔊</div>
     <div class="icon-btn" id="shareGameBtn" title="Share Game Link">🔗</div>
   </div>
 
@@ -474,8 +477,12 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
     </div>
   </div>
 
-  <!-- Dynamic Camera Zoom Toggle -->
-  <div class="zoom-toggle-btn" id="zoomToggleBtn">🔍 ZOOM: <span id="zoomLevelVal">1.0x</span></div>
+  <!-- Controls & Sound Pills on HUD -->
+  <div class="hud-controls-bar">
+    <div class="hud-pill-btn" id="zoomToggleBtn">🔍 <span id="zoomLevelVal">1.0x</span></div>
+    <div class="hud-pill-btn" id="nameToggleBtn">🏷️ <span id="nameToggleVal">NAMES ON</span></div>
+    <div class="hud-pill-btn" id="soundToggleHudBtn">🔊 SOUND</div>
+  </div>
 
   <div class="room-badge" id="roomBadge" style="display:none;" title="Click to copy room link"></div>
 </div>
@@ -494,7 +501,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
   <div id="rightJoyBg" class="joy-outer"><div id="rightJoyHandle" class="joy-inner"></div></div>
 </div>
 
-<!-- GAME OVER SCREEN WITH 2 REVIVE LIFELINES -->
+<!-- GAME OVER SCREEN WITH REVIVE LIFELINES -->
 <div id="gameOverScreen" class="screen">
   <h2 id="goTitle">☠️ GAME OVER</h2>
   <div class="go-stats">
@@ -523,6 +530,95 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 <script src="/socket.io/socket.io.js"></script>
 <script>
 'use strict';
+
+// ═══════════════════════════════════════════════════════
+//  WEB AUDIO API SOUND EFFECTS ENGINE (ZERO LATENCY)
+// ═══════════════════════════════════════════════════════
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+let soundEnabled = true;
+
+function initAudio(){
+  if(!audioCtx) audioCtx = new AudioCtx();
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playEatSound(){
+  if(!soundEnabled) return;
+  try {
+    initAudio();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(380 + Math.random()*180, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(750 + Math.random()*250, audioCtx.currentTime + 0.07);
+    gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.07);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.07);
+  } catch(e){}
+}
+
+function playPowerupSound(){
+  if(!soundEnabled) return;
+  try {
+    initAudio();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(523, audioCtx.currentTime);
+    osc.frequency.setValueAtTime(659, audioCtx.currentTime + 0.08);
+    osc.frequency.setValueAtTime(784, audioCtx.currentTime + 0.16);
+    gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.24);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.24);
+  } catch(e){}
+}
+
+function playKillSound(){
+  if(!soundEnabled) return;
+  try {
+    initAudio();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(350, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(90, audioCtx.currentTime + 0.2);
+    gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+  } catch(e){}
+}
+
+function playGameOverSound(){
+  if(!soundEnabled) return;
+  try {
+    initAudio();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+    osc.frequency.setValueAtTime(196, audioCtx.currentTime + 0.2);
+    osc.frequency.setValueAtTime(174, audioCtx.currentTime + 0.4);
+    osc.frequency.setValueAtTime(130, audioCtx.currentTime + 0.6);
+    gain.gain.setValueAtTime(0.22, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.85);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.85);
+  } catch(e){}
+}
+
+function toggleSound(){
+  soundEnabled = !soundEnabled;
+  const txt = soundEnabled ? '🔊' : '🔇';
+  document.getElementById('soundToggleMenuBtn').textContent = txt;
+  document.getElementById('soundToggleHudBtn').textContent = soundEnabled ? '🔊 SOUND ON' : '🔇 MUTED';
+  showPNotif(soundEnabled ? '🔊 Sound Enabled' : '🔇 Sound Muted', '#00f5a0');
+}
+document.getElementById('soundToggleMenuBtn').addEventListener('click', toggleSound);
+document.getElementById('soundToggleHudBtn').addEventListener('click', toggleSound);
 
 // ═══════════════════════════════════════════════════════
 //  FRUIT TYPES
@@ -611,6 +707,13 @@ const AI_NAMES=['SnakeKing','WormPro','CoilMaster','SlitherX','ZoneBoss','HissKi
 
 let selectedSkin=0;
 let selectedFace='glasses';
+let showInGameNames = true; // Toggle in-game floating names above head
+
+document.getElementById('nameToggleBtn').addEventListener('click', () => {
+  showInGameNames = !showInGameNames;
+  document.getElementById('nameToggleVal').textContent = showInGameNames ? 'NAMES ON' : 'NAMES OFF';
+  showPNotif(showInGameNames ? '🏷️ Player Names Shown' : '🏷️ Player Names Hidden', '#00f5a0');
+});
 
 const skinsView = document.getElementById('skinsView');
 SKINS.forEach((s,i)=>{
@@ -680,7 +783,7 @@ function updateHighScore(score){
 }
 
 // ═══════════════════════════════════════════════════════
-//  CANVAS & PREVIEW & DYNAMIC CAMERA ZOOM
+//  CANVAS & DYNAMIC HOME BACKGROUND ANIMATION
 // ═══════════════════════════════════════════════════════
 const canvas=document.getElementById('canvas');
 const ctx=canvas.getContext('2d');
@@ -688,7 +791,6 @@ let W,H;
 function resizeCanvas(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
 resizeCanvas();window.addEventListener('resize',resizeCanvas);
 
-// Camera Zoom Setup
 let zoomLevels = [1.0, 0.75, 0.55];
 let zoomIdx = 0;
 let camScale = 1.0;
@@ -724,6 +826,37 @@ function updatePreview(){
 }
 (function previewLoop(){prevPhase+=0.04;updatePreview();requestAnimationFrame(previewLoop);})();
 
+// Dynamic Home Floating Background Items
+const menuBgItems = [];
+for(let i=0; i<30; i++){
+  menuBgItems.push({
+    x: Math.random()*window.innerWidth,
+    y: Math.random()*window.innerHeight,
+    vx: (Math.random()-0.5)*1.2,
+    vy: (Math.random()-0.5)*1.2,
+    emoji: FRUIT_TYPES[Math.floor(Math.random()*FRUIT_TYPES.length)].emoji,
+    sz: 18 + Math.random()*24,
+    rot: Math.random()*Math.PI*2
+  });
+}
+function drawMenuBg(){
+  if(gameOn) return;
+  ctx.fillStyle='#060612';ctx.fillRect(0,0,W,H);
+  menuBgItems.forEach(b=>{
+    b.x+=b.vx;b.y+=b.vy;b.rot+=0.01;
+    if(b.x<-30)b.x=W+30;if(b.x>W+30)b.x=-30;
+    if(b.y<-30)b.y=H+30;if(b.y>H+30)b.y=-30;
+    ctx.save();
+    ctx.globalAlpha=0.18;
+    ctx.font=`${b.sz}px serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(b.emoji, b.x, b.y);
+    ctx.restore();
+  });
+  requestAnimationFrame(drawMenuBg);
+}
+drawMenuBg();
+
 // ═══════════════════════════════════════════════════════
 //  STATE & LIFELINES
 // ═══════════════════════════════════════════════════════
@@ -738,7 +871,7 @@ let pingMs=0,raf;
 let isOffline=false,aiWorms=[];
 let lastJoinData=null;
 let globalPhase=0;
-let revivesLeft = 2; // 2 Extra Life Revives!
+let revivesLeft = 2;
 
 const nameInput = document.getElementById('playerNameInput');
 nameInput.addEventListener('input', () => {
@@ -766,6 +899,7 @@ function showHome(){
   document.getElementById('gameHUD').style.display='none';
   document.getElementById('leftJoyZone').style.display='none';
   document.getElementById('rightJoyZone').style.display='none';
+  drawMenuBg();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -854,14 +988,17 @@ class RemotePlayer{
     }
     ctx.globalAlpha=1;ctx.shadowBlur=0;
     drawEyesAndFaceOnCtx(ctx,hx,hy,this.angle,r,this.faceStyle);
-    ctx.font='bold 11px Segoe UI';ctx.textAlign='center';
-    ctx.fillStyle='rgba(255,255,255,0.85)';ctx.shadowColor='rgba(0,0,0,0.9)';ctx.shadowBlur=4;
-    ctx.fillText(this.name,hx,hy-r-7);ctx.shadowBlur=0;ctx.restore();
+    if(showInGameNames){
+      ctx.font='bold 11px Segoe UI';ctx.textAlign='center';
+      ctx.fillStyle='rgba(255,255,255,0.85)';ctx.shadowColor='rgba(0,0,0,0.9)';ctx.shadowBlur=4;
+      ctx.fillText(this.name,hx,hy-r-7);ctx.shadowBlur=0;
+    }
+    ctx.restore();
   }
 }
 
 // ═══════════════════════════════════════════════════════
-//  LOCAL PLAYER (BOOST SCORE DRAIN & TAIL FOOD DROPS)
+//  LOCAL PLAYER
 // ═══════════════════════════════════════════════════════
 class LocalWorm{
   constructor(x,y,skin,faceStyle,name){
@@ -891,14 +1028,12 @@ class LocalWorm{
     nx=Math.max(mg,Math.min(MAP-mg,nx));ny=Math.max(mg,Math.min(MAP-mg,ny));
     this.segs.unshift({x:nx,y:ny});this.segs.pop();
 
-    // Boosting drains points & drops tail food like original game!
     if(boosting){
       this.boostAcc+=dt;
       if(this.boostAcc>0.16){
         this.boostAcc=0;
         this.score=Math.max(0,this.score-1);
         if(this.score%5===0&&this.segs.length>16){this.segs.pop();}
-        // Drop food item behind tail!
         const tail = this.segs[this.segs.length-1];
         if(tail){
           const f = makeLocalFood(tail.x + rnd(-8,8), tail.y + rnd(-8,8));
@@ -931,9 +1066,12 @@ class LocalWorm{
       ctx.beginPath();ctx.arc(hx,hy,r+8,0,Math.PI*2);
       ctx.strokeStyle='rgba(46,204,64,0.8)';ctx.lineWidth=3;ctx.shadowColor='#2ecc40';ctx.shadowBlur=20;ctx.stroke();ctx.shadowBlur=0;
     }
-    ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
-    ctx.fillStyle='#7df';ctx.shadowColor='rgba(0,0,0,0.9)';ctx.shadowBlur=5;
-    ctx.fillText(this.name,hx,hy-r-8);ctx.shadowBlur=0;ctx.restore();
+    if(showInGameNames){
+      ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+      ctx.fillStyle='#7df';ctx.shadowColor='rgba(0,0,0,0.9)';ctx.shadowBlur=5;
+      ctx.fillText(this.name,hx,hy-r-8);ctx.shadowBlur=0;
+    }
+    ctx.restore();
   }
   grow(amt){
     for(let i=0;i<amt;i++){const l=this.segs[this.segs.length-1];this.segs.push({x:l.x,y:l.y});}
@@ -944,6 +1082,7 @@ class LocalWorm{
   }
   die(){
     if(!this.alive)return;this.alive=false;
+    playGameOverSound();
     socket?.emit('player_died',{segs:this.segs.filter((_,i)=>i%2===0)});
     socket?.emit('kill_feed','💀 '+this.name+' eliminated!');
     setTimeout(()=>showGameOverScreen(),800);
@@ -974,7 +1113,7 @@ function drawEyesAndFaceOnCtx(targetCtx, hx, hy, angle, r, faceStyle){
 }
 
 // ═══════════════════════════════════════════════════════
-//  AI BOTS (28 BOTS WITH VARIOUS SIZES)
+//  AI BOTS
 // ═══════════════════════════════════════════════════════
 class AIWorm{
   constructor(i){
@@ -986,7 +1125,7 @@ class AIWorm{
     this.alive=true;
 
     let initLen = 20;
-    if(i < 3) initLen = 450 + Math.floor(Math.random()*300); // GIGANTIC MONSTER BOTS!
+    if(i < 3) initLen = 450 + Math.floor(Math.random()*300);
     else if(i < 9) initLen = 150 + Math.floor(Math.random()*160);
     else if(i < 18) initLen = 60 + Math.floor(Math.random()*70);
     else initLen = 18 + Math.floor(Math.random()*25);
@@ -1056,9 +1195,12 @@ class AIWorm{
     }
     ctx.globalAlpha=1;ctx.shadowBlur=0;
     drawEyesAndFaceOnCtx(ctx,hx,hy,this.angle,r,this.faceStyle);
-    ctx.font='bold 11px Segoe UI';ctx.textAlign='center';
-    ctx.fillStyle='rgba(255,255,255,0.85)';ctx.shadowColor='rgba(0,0,0,0.9)';ctx.shadowBlur=4;
-    ctx.fillText(this.name,hx,hy-r-7);ctx.shadowBlur=0;ctx.restore();
+    if(showInGameNames){
+      ctx.font='bold 11px Segoe UI';ctx.textAlign='center';
+      ctx.fillStyle='rgba(255,255,255,0.85)';ctx.shadowColor='rgba(0,0,0,0.9)';ctx.shadowBlur=4;
+      ctx.fillText(this.name,hx,hy-r-7);ctx.shadowBlur=0;
+    }
+    ctx.restore();
   }
 }
 
@@ -1144,7 +1286,7 @@ function drawMap(){
 }
 
 // ═══════════════════════════════════════════════════════
-//  EXACT HEAD-TO-BODY COLLISION DETECTOR
+//  COLLISION & SOUND EFFECTS INTEGRATION
 // ═══════════════════════════════════════════════════════
 function checkCols(){
   if(!player?.alive)return;
@@ -1155,6 +1297,7 @@ function checkCols(){
     if(Math.hypot(f.x-player.head.x,f.y-player.head.y)<player.r+ft.r+3){
       player.grow(Math.max(1,Math.ceil(ft.pts/5)));
       foodEaten++;
+      playEatSound(); // 🍏 CRISP POP/EAT SOUND!
       addParticles(f.x,f.y,ft.col,5);
       delete foods[id];
       if(!isOffline)socket?.emit('food_eaten',id);
@@ -1165,6 +1308,7 @@ function checkCols(){
   Object.entries(powerups).forEach(([id,pu])=>{
     if(Math.hypot(pu.x-player.head.x,pu.y-player.head.y)<player.r+22){
       delete powerups[id];
+      playPowerupSound(); // ⚡ POWERUP SOUND!
       if(!isOffline)socket?.emit('powerup_collected',id);
       else applyPU(pu.type);
     }
@@ -1172,14 +1316,13 @@ function checkCols(){
 
   if(activePU.ghost>0)return;
 
-  // Snakes Head-to-Body Collision
   const others=isOffline?aiWorms:Object.values(remotePlayers);
 
   for(let idx = 0; idx < others.length; idx++){
     const rp = others[idx];
     if(!rp || rp.alive === false) continue;
 
-    // 1. OTHER SNAKE HEAD HITS MY BODY -> OTHER SNAKE DIES & DROPS FOOD!
+    // OTHER SNAKE HEAD HITS MY BODY -> THEY DIE!
     const rpHead = rp.head || { x: rp.x, y: rp.y };
     if(rpHead && player.segs.length > 5){
       for(let j = 4; j < player.segs.length; j += 2){
@@ -1187,6 +1330,7 @@ function checkCols(){
         if(Math.hypot(mySeg.x - rpHead.x, mySeg.y - rpHead.y) < (rp.r || 12) * 0.75 + player.r * 0.75){
           if(isOffline){
             rp.alive = false;
+            playKillSound(); // 💥 EXPLOSION KILL SOUND!
             rp.segs.forEach((s, k) => {
               if(k % 2 === 0){
                 const f = makeLocalFood(s.x, s.y);
@@ -1207,7 +1351,7 @@ function checkCols(){
       }
     }
 
-    // 2. MY HEAD HITS ANOTHER SNAKE BODY -> I DIE (UNLESS SHIELD)
+    // MY HEAD HITS OTHER BODY -> I DIE!
     if(player.alive){
       const segs = rp.segs || [];
       for(let i = 4; i < segs.length; i += 2){
@@ -1281,7 +1425,7 @@ document.getElementById('shareGameBtn').addEventListener('click', ()=>{
 });
 
 // ═══════════════════════════════════════════════════════
-//  SPAWN & START & REVIVE LIFELINES
+//  SPAWN & START
 // ═══════════════════════════════════════════════════════
 function spawnLocalPlayer(x,y){
   foodEaten=0;particles=[];activePU={speed:0,magnet:0,shield:0,ghost:0};
@@ -1295,7 +1439,7 @@ function spawnLocalPlayer(x,y){
 
 function startOffline(){
   isOffline=true;myId='local';currentRoom=null;MAP=selectedMapSize;
-  revivesLeft = 2; // Reset extra lives to 2 per game!
+  revivesLeft = 2;
   foods={};powerups={};aiWorms=[];remotePlayers={};
 
   for(let i=0;i<650;i++){const f=makeLocalFood();foods[f.id]=f;}
@@ -1313,7 +1457,7 @@ function startOffline(){
 }
 
 // ═══════════════════════════════════════════════════════
-//  GAME LOOP WITH CAMERA ZOOM
+//  GAME LOOP
 // ═══════════════════════════════════════════════════════
 let lastT=0,sendTimer=0;
 function loop(ts){
@@ -1328,7 +1472,6 @@ function loop(ts){
     cam.x+=(tx-cam.x)*0.18;cam.y+=(ty-cam.y)*0.18;
   }
 
-  // Camera Zoom Transformation
   ctx.save();
   if(camScale !== 1.0){
     ctx.translate(W/2, H/2);
@@ -1387,7 +1530,6 @@ function showGameOverScreen(){
   document.getElementById('goRk').textContent='#'+rank;
   document.getElementById('goBest').textContent=highScore;
 
-  // Revive button handling
   const reviveBtn = document.getElementById('reviveBtn');
   document.getElementById('revivesLeftVal').textContent = revivesLeft;
   if(revivesLeft > 0){
@@ -1402,7 +1544,6 @@ function showGameOverScreen(){
   showScreen('gameOverScreen');
 }
 
-// Revive Extra Life Button Click
 document.getElementById('reviveBtn').addEventListener('click', () => {
   if(revivesLeft > 0){
     revivesLeft--;
@@ -1435,6 +1576,7 @@ function renderRoomList(list){
 }
 
 function doStart(mode){
+  initAudio(); // Initialize audio on user interaction!
   playerName=document.getElementById('playerNameInput').value.trim()||'SlitherPro';
   if(mode==='offline'||!socket?.connected){startOffline();return;}
   isOffline=false;
@@ -1508,6 +1650,7 @@ function updateDoubleFingerBoost(){
 
 function handleZoneTouchStart(e, zoneSide, bg, handle){
   e.preventDefault();
+  initAudio();
   for(let i=0; i<e.changedTouches.length; i++){
     const t = e.changedTouches[i];
     activeTouches[t.identifier] = { side: zoneSide, cx: t.clientX, cy: t.clientY };
@@ -1558,6 +1701,7 @@ rightJoyZone.addEventListener('touchmove', e => handleZoneTouchMove(e, 'right', 
 rightJoyZone.addEventListener('touchend', e => handleZoneTouchEnd(e, 'right', rightJoyBg, rightJoyHandle), {passive:false});
 
 async function enterFullscreenLandscape(){
+  initAudio();
   try{
     const el = document.documentElement;
     if(el.requestFullscreen) await el.requestFullscreen();
