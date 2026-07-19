@@ -510,13 +510,13 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 // ═══════════════════════════════════════════════════════
 //  WEB AUDIO API SOUND EFFECTS ENGINE (ZERO LATENCY)
 // ═══════════════════════════════════════════════════════
-const AudioCtx = window.AudioContext || window.webkitAudioContext;
+const AudioCtx = window.AudioContext || window.webkitAudioContext || null;
 let audioCtx = null;
 let soundEnabled = true;
 
 function initAudio(){
   try {
-    if(!audioCtx) audioCtx = new AudioCtx();
+    if(!audioCtx && AudioCtx) audioCtx = new AudioCtx();
     if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
   } catch(e){}
 }
@@ -919,46 +919,54 @@ function showHome(){
 //  SOCKET
 // ═══════════════════════════════════════════════════════
 function connectSocket(){
-  socket=io({transports:['websocket'],reconnectionAttempts:5});
-  socket.on('connect',()=>{
-    document.getElementById('loadOverlay').style.display='none';
-    showHome();
-  });
-  socket.on('connect_error',()=>{
-    document.getElementById('loadOverlay').style.display='none';
-    showHome();
-  });
-  socket.on('game_init',(data)=>{
-    myId=data.myId;currentRoom=data.roomCode;MAP=data.mapSize||5000;
-    foods={};data.foods.forEach(f=>{patchFood(f);foods[f.id]=f;});
-    powerups={};data.powerups.forEach(p=>powerups[p.id]=p);
-    remotePlayers={};data.players.forEach(p=>{remotePlayers[p.id]=new RemotePlayer(p);});
-    spawnLocalPlayer(data.spawnX,data.spawnY);
-    const rb=document.getElementById('roomBadge');
-    if(currentRoom){
-      rb.textContent='🔗 ROOM: '+currentRoom+' (Click to copy)';
-      rb.style.display='block';
-      rb.onclick = () => copyRoomLink(currentRoom);
-    } else rb.style.display='none';
-  });
-  socket.on('player_joined',p=>{remotePlayers[p.id]=new RemotePlayer(p);addKF('🐛 '+p.name+' joined!');});
-  socket.on('player_moved',d=>{if(remotePlayers[d.id])remotePlayers[d.id].onUpdate(d);});
-  socket.on('player_dead',d=>{
-    if(remotePlayers[d.id]){addParticles(remotePlayers[d.id].x,remotePlayers[d.id].y,SKINS[remotePlayers[d.id].skin]?.h||'#fff',20);delete remotePlayers[d.id];}
-    d.newFoods?.forEach(f=>{patchFood(f);foods[f.id]=f;});
-  });
-  socket.on('player_left',id=>{if(remotePlayers[id]){addKF('👋 '+remotePlayers[id].name+' left');delete remotePlayers[id];}});
-  socket.on('food_spawn',f=>{patchFood(f);foods[f.id]=f;});
-  socket.on('food_removed',id=>delete foods[id]);
-  socket.on('powerup_spawn',p=>powerups[p.id]=p);
-  socket.on('powerup_removed',id=>delete powerups[id]);
-  socket.on('powerup_apply',t=>applyPU(t));
-  socket.on('leaderboard',lb=>renderLB(lb));
-  socket.on('kill_feed',msg=>addKF(msg));
-  socket.on('room_list',list=>renderRoomList(list));
-  socket.on('room_error',msg=>document.getElementById('roomError').textContent=msg);
-  socket.on('ping_res',t=>{pingMs=Date.now()-t;document.getElementById('pingBadge').textContent='Ping: '+pingMs+'ms';});
-  setInterval(()=>socket?.connected&&socket.emit('ping_req',Date.now()),3000);
+  try {
+    if (typeof io !== 'undefined') {
+      socket=io({transports:['websocket'],reconnectionAttempts:5});
+      socket.on('connect',()=>{
+        document.getElementById('loadOverlay').style.display='none';
+        showHome();
+      });
+      socket.on('connect_error',()=>{
+        document.getElementById('loadOverlay').style.display='none';
+        showHome();
+      });
+      socket.on('game_init',(data)=>{
+        myId=data.myId;currentRoom=data.roomCode;MAP=data.mapSize||5000;
+        foods={};data.foods.forEach(f=>{patchFood(f);foods[f.id]=f;});
+        powerups={};data.powerups.forEach(p=>powerups[p.id]=p);
+        remotePlayers={};data.players.forEach(p=>{remotePlayers[p.id]=new RemotePlayer(p);});
+        spawnLocalPlayer(data.spawnX,data.spawnY);
+        const rb=document.getElementById('roomBadge');
+        if(currentRoom){
+          rb.textContent='🔗 ROOM: '+currentRoom+' (Click to copy)';
+          rb.style.display='block';
+          rb.onclick = () => copyRoomLink(currentRoom);
+        } else rb.style.display='none';
+      });
+      socket.on('player_joined',p=>{remotePlayers[p.id]=new RemotePlayer(p);addKF('🐛 '+p.name+' joined!');});
+      socket.on('player_moved',d=>{if(remotePlayers[d.id])remotePlayers[d.id].onUpdate(d);});
+      socket.on('player_dead',d=>{
+        if(remotePlayers[d.id]){addParticles(remotePlayers[d.id].x,remotePlayers[d.id].y,SKINS[remotePlayers[d.id].skin]?.h||'#fff',20);delete remotePlayers[d.id];}
+        d.newFoods?.forEach(f=>{patchFood(f);foods[f.id]=f;});
+      });
+      socket.on('player_left',id=>{if(remotePlayers[id]){addKF('👋 '+remotePlayers[id].name+' left');delete remotePlayers[id];}});
+      socket.on('food_spawn',f=>{patchFood(f);foods[f.id]=f;});
+      socket.on('food_removed',id=>delete foods[id]);
+      socket.on('powerup_spawn',p=>powerups[p.id]=p);
+      socket.on('powerup_removed',id=>delete powerups[id]);
+      socket.on('powerup_apply',t=>applyPU(t));
+      socket.on('leaderboard',lb=>renderLB(lb));
+      socket.on('kill_feed',msg=>addKF(msg));
+      socket.on('room_list',list=>renderRoomList(list));
+      socket.on('room_error',msg=>document.getElementById('roomError').textContent=msg);
+      socket.on('ping_res',t=>{pingMs=Date.now()-t;document.getElementById('pingBadge').textContent='Ping: '+pingMs+'ms';});
+      setInterval(()=>socket?.connected&&socket.emit('ping_req',Date.now()),3000);
+    } else {
+      console.warn("io is undefined. running in offline fallback mode.");
+    }
+  } catch(e) {
+    console.error("connectSocket error:", e);
+  }
 }
 
 function patchFood(f){
@@ -1592,13 +1600,16 @@ function doStart(mode){
   try {
     initAudio();
     playerName=document.getElementById('playerNameInput').value.trim()||'SlitherPro';
-    if(mode==='offline'||!socket?.connected){
+    if(mode==='offline'||!socket||!socket.connected){
       startOffline();
       return;
     }
     isOffline=false;
-    if(mode==='quick') socket.emit('quick_play',{name:playerName,skin:selectedSkin,faceStyle:selectedFace});
-    else if(mode==='create') socket.emit('create_room',{name:playerName,skin:selectedSkin,faceStyle:selectedFace,isPublic:true,mapSize:selectedMapSize});
+    if(mode==='quick') {
+      socket?.emit('quick_play',{name:playerName,skin:selectedSkin,faceStyle:selectedFace});
+    } else if(mode==='create') {
+      socket?.emit('create_room',{name:playerName,skin:selectedSkin,faceStyle:selectedFace,isPublic:true,mapSize:selectedMapSize});
+    }
     lastJoinData={name:playerName,skin:selectedSkin,faceStyle:selectedFace};
     showGame();gameOn=true;lastT=performance.now();
     if(raf)cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);
