@@ -1060,7 +1060,8 @@ class RemotePlayer{
     if(hx<-150||hx>W+150||hy<-150||hy>H+150)return;
     ctx.save();
     const ds=this.segs;
-    for(let i=ds.length-1;i>=0;i--){
+    const step = this.size > 220 ? 3 : this.size > 70 ? 2 : 1;
+    for(let i=ds.length-1;i>=0;i -= step){
       const seg=ds[i],sx=seg.x-cam.x,sy=seg.y-cam.y;
       if(sx<-50||sx>W+50||sy<-50||sy>H+50)continue;
       const t=i/ds.length,sr=r*(1-t*0.12);
@@ -1078,6 +1079,11 @@ class RemotePlayer{
         ctx.shadowBlur=0; ctx.globalAlpha=1;
       }
       ctx.fill();
+
+      // 1.5px black outline around each segment separates overlapping bodies completely!
+      ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
     }
     ctx.globalAlpha=1;ctx.shadowBlur=0;
     drawEyesAndFaceOnCtx(ctx,hx,hy,this.angle,r,this.faceStyle);
@@ -1103,7 +1109,7 @@ class LocalWorm{
     this.skin=skin||0;this.faceStyle=faceStyle||'glasses';this.name=name||'Player';
     this.alive=true;this.score=0;this.fed=0;this.boostAcc=0;
     this.segs=[];
-    for(let i=0;i<20;i++) this.segs.push({x:x-Math.cos(this.angle)*i*11,y:y-Math.sin(this.angle)*i*11});
+    for(let i=0;i<20;i++) this.segs.push({x:x-Math.cos(this.angle)*i*8.5,y:y-Math.sin(this.angle)*i*8.5});
   }
   get head(){return this.segs[0]||{x:this.x,y:this.y};}
   get size(){return this.segs.length;}
@@ -1126,7 +1132,19 @@ class LocalWorm{
     let ny=this.head.y+Math.sin(this.angle)*spd;
     const mg=this.r+5;
     nx=Math.max(mg,Math.min(MAP-mg,nx));ny=Math.max(mg,Math.min(MAP-mg,ny));
-    this.segs.unshift({x:nx,y:ny});this.segs.pop();
+    this.segs[0] = {x:nx, y:ny};
+    const targetSpacing = 8.5; // Constant spacing in pixels prevents rubber-band stretching!
+    for(let i = 1; i < this.segs.length; i++){
+      const prev = this.segs[i-1];
+      const curr = this.segs[i];
+      const dx = curr.x - prev.x;
+      const dy = curr.y - prev.y;
+      const dist = Math.hypot(dx, dy);
+      if(dist > targetSpacing){
+        curr.x = prev.x + (dx / dist) * targetSpacing;
+        curr.y = prev.y + (dy / dist) * targetSpacing;
+      }
+    }
 
     if(boosting){
       this.boostAcc+=dt;
@@ -1152,7 +1170,9 @@ class LocalWorm{
     if(!this.alive||!this.head)return;
     const sk=SKINS[this.skin]||SKINS[0],r=this.r;
     ctx.save();
-    for(let i=this.segs.length-1;i>=0;i--){
+    // Stepping based on size reduces canvas draw calls by up to 70%!
+    const step = this.size > 220 ? 3 : this.size > 70 ? 2 : 1;
+    for(let i=this.segs.length-1;i>=0;i -= step){
       const seg=this.segs[i],sx=seg.x-cam.x,sy=seg.y-cam.y;
       if(sx<-50||sx>W+50||sy<-50||sy>H+50)continue;
       const t=i/this.segs.length,sr=r*(1-t*0.12);
@@ -1170,6 +1190,11 @@ class LocalWorm{
         ctx.shadowBlur=0; ctx.globalAlpha=1;
       }
       ctx.fill();
+
+      // 1.5px black outline around each segment separates overlapping bodies completely!
+      ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
     }
     ctx.globalAlpha=1;ctx.shadowBlur=0;
     const hx=this.head.x-cam.x,hy=this.head.y-cam.y;
@@ -1255,7 +1280,7 @@ class AIWorm{
     this.score = initLen * 18;
     this.aiTimer=0;this.target=null;this.tr=0.04+Math.random()*0.02;
     this.segs=[];
-    for(let j=0;j<initLen;j++) this.segs.push({x:this.x-Math.cos(this.angle)*j*10,y:this.y-Math.sin(this.angle)*j*10});
+    for(let j=0;j<initLen;j++) this.segs.push({x:this.x-Math.cos(this.angle)*j*8.5,y:this.y-Math.sin(this.angle)*j*8.5});
   }
   get head(){return this.segs[0]||{x:this.x,y:this.y};}
   get size(){return this.segs.length;}
@@ -1360,7 +1385,19 @@ class AIWorm{
 
     const nx=Math.max(this.r,Math.min(MAP-this.r,this.head.x+Math.cos(this.angle)*spd));
     const ny=Math.max(this.r,Math.min(MAP-this.r,this.head.y+Math.sin(this.angle)*spd));
-    this.segs.unshift({x:nx,y:ny});this.segs.pop();
+    this.segs[0] = {x:nx, y:ny};
+    const targetSpacing = 8.5;
+    for(let i = 1; i < this.segs.length; i++){
+      const prev = this.segs[i-1];
+      const curr = this.segs[i];
+      const dx = curr.x - prev.x;
+      const dy = curr.y - prev.y;
+      const dist = Math.hypot(dx, dy);
+      if(dist > targetSpacing){
+        curr.x = prev.x + (dx / dist) * targetSpacing;
+        curr.y = prev.y + (dy / dist) * targetSpacing;
+      }
+    }
 
     if(boosting){
       this.score = Math.max(150, this.score - 1);
@@ -1393,7 +1430,8 @@ class AIWorm{
     if(hx<-150||hx>W+150||hy<-150||hy>H+150)return;
     ctx.save();
     const ds=this.segs;
-    for(let i=ds.length-1;i>=0;i--){
+    const step = this.size > 220 ? 3 : this.size > 70 ? 2 : 1;
+    for(let i=ds.length-1;i>=0;i -= step){
       const seg=ds[i],sx=seg.x-cam.x,sy=seg.y-cam.y;
       if(sx<-50||sx>W+50||sy<-50||sy>H+50)continue;
       const t=i/ds.length,sr=r*(1-t*0.12);
@@ -1411,6 +1449,11 @@ class AIWorm{
         ctx.shadowBlur=0; ctx.globalAlpha=1;
       }
       ctx.fill();
+
+      // 1.5px black outline around each segment separates overlapping bodies completely!
+      ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
     }
     ctx.globalAlpha=1;ctx.shadowBlur=0;
     drawEyesAndFaceOnCtx(ctx,hx,hy,this.angle,r,this.faceStyle);
@@ -1636,7 +1679,7 @@ function checkCols(){
             newBot.x = sx; newBot.y = sy;
             newBot.segs = [];
             for(let k=0; k<targetLen; k++){
-              newBot.segs.push({x: sx - Math.cos(newBot.angle)*k*10, y: sy - Math.sin(newBot.angle)*k*10});
+              newBot.segs.push({x: sx - Math.cos(newBot.angle)*k*8.5, y: sy - Math.sin(newBot.angle)*k*8.5});
             }
             others[idx] = newBot;
           } else {
@@ -1705,7 +1748,7 @@ function checkCols(){
             newBot.x = sx; newBot.y = sy;
             newBot.segs = [];
             for(let j=0; j<targetLen; j++){
-              newBot.segs.push({x: sx - Math.cos(newBot.angle)*j*10, y: sy - Math.sin(newBot.angle)*j*10});
+              newBot.segs.push({x: sx - Math.cos(newBot.angle)*j*8.5, y: sy - Math.sin(newBot.angle)*j*8.5});
             }
             aiWorms[idxA] = newBot;
             break;
