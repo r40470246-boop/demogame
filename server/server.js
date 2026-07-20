@@ -86,18 +86,34 @@ function genCode(){
   return (rooms[c] || c === 'GLOBAL') ? genCode() : c;
 }
 
-function spawnBot(room, index){
+function spawnBot(room, index, nearPlayerX, nearPlayerY, playerScore){
   const id = 'bot_' + Math.random().toString(36).slice(2,7);
   const name = AI_NAMES[index % AI_NAMES.length] || ('Bot' + index);
-  const skin = Math.floor(Math.random()*12);
-  const x = rnd(300, room.mapSize-300);
-  const y = rnd(300, room.mapSize-300);
+  const skin = Math.floor(Math.random()*10);
   const angle = Math.random() * Math.PI * 2;
 
+  let x, y;
+  if(nearPlayerX !== undefined && nearPlayerY !== undefined){
+    const dist = 750 + Math.random()*350;
+    const a = Math.random()*Math.PI*2;
+    x = nearPlayerX + Math.cos(a) * dist;
+    y = nearPlayerY + Math.sin(a) * dist;
+    x = Math.max(300, Math.min(room.mapSize-300, x));
+    y = Math.max(300, Math.min(room.mapSize-300, y));
+  } else {
+    x = rnd(300, room.mapSize-300);
+    y = rnd(300, room.mapSize-300);
+  }
+
   let initialSize = 25;
-  if(index < 3) initialSize = 400 + Math.floor(Math.random()*300); // GIANT SNAKES!
-  else if(index < 8) initialSize = 120 + Math.floor(Math.random()*150);
-  else initialSize = 25 + Math.floor(Math.random()*40);
+  if(playerScore !== undefined) {
+    initialSize = 18 + Math.floor(Math.sqrt(playerScore) * 0.95);
+  } else {
+    if(index < 3) initialSize = 400 + Math.floor(Math.random()*300); // GIANT SNAKES!
+    else if(index < 8) initialSize = 120 + Math.floor(Math.random()*150);
+    else initialSize = 25 + Math.floor(Math.random()*40);
+  }
+  initialSize = Math.max(18, Math.min(600, initialSize));
 
   const segs = [];
   for(let i = 0; i < initialSize; i++){
@@ -324,13 +340,14 @@ io.on('connection', (socket)=>{
       io.to(pd.roomCode).emit('player_dead', { id: bot.id, newFoods });
       io.to(pd.roomCode).emit('kill_feed', `💥 ${bot.name} eliminated by ${room.players[socket.id]?.name || 'Player'}!`);
       
-      // Respawn the bot after 3 seconds
+      // Respawn the bot after 500ms near the player who killed it
+      const p = room.players[socket.id];
       setTimeout(() => {
         if(room.bots[data.botId] === bot) {
-          spawnBot(room, Math.floor(Math.random()*AI_NAMES.length));
+          spawnBot(room, Math.floor(Math.random()*AI_NAMES.length), p?.x, p?.y, p?.score);
           delete room.bots[data.botId];
         }
-      }, 3000);
+      }, 500);
     }
   });
 

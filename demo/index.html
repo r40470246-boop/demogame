@@ -281,7 +281,7 @@ html,body{
 .pbar{background:rgba(0,0,0,0.75);border-radius:20px;padding:4px 12px 4px 8px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:5px;border:1px solid rgba(255,255,255,0.08);}
 .pfill{height:4px;width:55px;background:rgba(255,255,255,0.12);border-radius:2px;overflow:hidden;}
 .pinner{height:100%;border-radius:2px;transition:width .2s;}
-#pingBadge{position:fixed;bottom:6px;left:10px;font-size:10px;color:rgba(255,255,255,0.25);z-index:50;pointer-events:none;}
+#pingBadge{position:fixed;bottom:10px;right:15px;font-size:10px;color:rgba(255,255,255,0.25);z-index:50;pointer-events:none;text-align:right;}
 
 /* ── 2-SIDE TOUCH CONTROLLER ZONES (INVISIBLE JOYSTICKS) ── */
 #leftJoyZone,#rightJoyZone{
@@ -1080,7 +1080,7 @@ class LocalWorm{
       this.angle+=Math.sign(da)*Math.min(Math.abs(da),0.11);
     }
     const boosting=isBoosting&&activePU.speed<=0&&this.segs.length>15;
-    const spd=activePU.speed>0?4.5:boosting?3.8:2.0;
+    const spd=activePU.speed>0?4.8:boosting?4.1:2.4;
 
     let nx=this.head.x+Math.cos(this.angle)*spd;
     let ny=this.head.y+Math.sin(this.angle)*spd;
@@ -1185,8 +1185,7 @@ function drawEyesAndFaceOnCtx(targetCtx, hx, hy, angle, r, faceStyle){
 // ═══════════════════════════════════════════════════════
 //  AI BOTS
 // ═══════════════════════════════════════════════════════
-class AIWorm{
-  constructor(i){
+  constructor(i, customLen){
     const skin=Math.abs((selectedSkin||0)+i+1)%SKINS.length;
     this.skin=skin;this.name=AI_NAMES[i % AI_NAMES.length]||('Bot'+i);
     this.faceStyle=(FACE_SKINS[i % FACE_SKINS.length] || FACE_SKINS[0]).id;
@@ -1194,11 +1193,13 @@ class AIWorm{
     this.angle=Math.random()*Math.PI*2;
     this.alive=true;
 
-    let initLen = 20;
-    if(i < 3) initLen = 450 + Math.floor(Math.random()*300);
-    else if(i < 9) initLen = 150 + Math.floor(Math.random()*160);
-    else if(i < 18) initLen = 60 + Math.floor(Math.random()*70);
-    else initLen = 18 + Math.floor(Math.random()*25);
+    let initLen = customLen || 20;
+    if(!customLen) {
+      if(i < 3) initLen = 450 + Math.floor(Math.random()*300);
+      else if(i < 9) initLen = 150 + Math.floor(Math.random()*160);
+      else if(i < 18) initLen = 60 + Math.floor(Math.random()*70);
+      else initLen = 18 + Math.floor(Math.random()*25);
+    }
 
     this.score = initLen * 18;
     this.aiTimer=0;this.target=null;this.tr=0.04+Math.random()*0.02;
@@ -1232,7 +1233,7 @@ class AIWorm{
     let da=ta-this.angle;while(da>Math.PI)da-=Math.PI*2;while(da<-Math.PI)da+=Math.PI*2;
     this.angle+=Math.sign(da)*Math.min(Math.abs(da),this.tr);
 
-    const spd = 2.0;
+    const spd = 2.4;
     const nx=Math.max(this.r,Math.min(MAP-this.r,this.head.x+Math.cos(this.angle)*spd));
     const ny=Math.max(this.r,Math.min(MAP-this.r,this.head.y+Math.sin(this.angle)*spd));
     this.segs.unshift({x:nx,y:ny});this.segs.pop();
@@ -1417,10 +1418,23 @@ function checkCols(){
             addParticles(rpHead.x, rpHead.y, SKINS[rp.skin]?.h || '#ff4136', 30);
             addKF('💥 You eliminated ' + rp.name + '!');
             showPNotif('💥 +1 Kill! (' + rp.name + ' eliminated)', '#00f5a0');
-            setTimeout(() => {
-              const newBot = new AIWorm(Math.floor(Math.random()*AI_NAMES.length));
-              others[idx] = newBot;
-            }, 3000);
+            // Instant respawn in front of player based on player size
+            const spawnLen = 18 + Math.floor(player.size * (0.15 + Math.random()*0.25));
+            const targetLen = Math.min(500, spawnLen);
+            const a = player.angle + (Math.random() - 0.5) * 1.6;
+            const dist = 750 + Math.random() * 350;
+            let sx = player.head.x + Math.cos(a) * dist;
+            let sy = player.head.y + Math.sin(a) * dist;
+            sx = Math.max(300, Math.min(MAP - 300, sx));
+            sy = Math.max(300, Math.min(MAP - 300, sy));
+
+            const newBot = new AIWorm(Math.floor(Math.random()*AI_NAMES.length), targetLen);
+            newBot.x = sx; newBot.y = sy;
+            newBot.segs = [];
+            for(let k=0; k<targetLen; k++){
+              newBot.segs.push({x: sx - Math.cos(newBot.angle)*k*10, y: sy - Math.sin(newBot.angle)*k*10});
+            }
+            others[idx] = newBot;
           } else {
             if(rp.id && rp.id.startsWith('bot_')){
               socket?.emit('kill_bot', { botId: rp.id });
@@ -1469,9 +1483,23 @@ function checkCols(){
             });
             addParticles(headA.x, headA.y, SKINS[botA.skin]?.h || '#ff4136', 15);
             addKF('💥 ' + botB.name + ' eliminated ' + botA.name);
-            setTimeout(() => {
-              aiWorms[idxA] = new AIWorm(Math.floor(Math.random()*AI_NAMES.length));
-            }, 3000);
+            // Instant respawn near player based on player size
+            const spawnLen = 18 + Math.floor(player.size * (0.15 + Math.random()*0.25));
+            const targetLen = Math.min(500, spawnLen);
+            const a = player.angle + (Math.random() - 0.5) * 1.6;
+            const dist = 750 + Math.random() * 350;
+            let sx = player.head.x + Math.cos(a) * dist;
+            let sy = player.head.y + Math.sin(a) * dist;
+            sx = Math.max(300, Math.min(MAP - 300, sx));
+            sy = Math.max(300, Math.min(MAP - 300, sy));
+
+            const newBot = new AIWorm(Math.floor(Math.random()*AI_NAMES.length), targetLen);
+            newBot.x = sx; newBot.y = sy;
+            newBot.segs = [];
+            for(let j=0; j<targetLen; j++){
+              newBot.segs.push({x: sx - Math.cos(newBot.angle)*j*10, y: sy - Math.sin(newBot.angle)*j*10});
+            }
+            aiWorms[idxA] = newBot;
             break;
           }
         }
