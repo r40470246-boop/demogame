@@ -1059,7 +1059,7 @@ class RemotePlayer{
     const hx=this.x-cam.x,hy=this.y-cam.y;
     if(hx<-150||hx>W+150||hy<-150||hy>H+150)return;
     ctx.save();
-    const ds=this.segs.slice(0,60);
+    const ds=this.segs;
     for(let i=ds.length-1;i>=0;i--){
       const seg=ds[i],sx=seg.x-cam.x,sy=seg.y-cam.y;
       if(sx<-50||sx>W+50||sy<-50||sy>H+50)continue;
@@ -1071,7 +1071,13 @@ class RemotePlayer{
       else if(sk.type === 'rainbow'){ fill = `hsl(${(i * 12 + globalPhase * 35) % 360}, 95%, 50%)`; }
       else if(sk.type === 'cyber'){ fill = (i % 2 === 0) ? sk.colA : sk.colB; }
       if(i === 0) fill = sk.h;
-      ctx.fillStyle=fill;ctx.shadowColor=sk.g;ctx.shadowBlur=i===0?16:3;ctx.globalAlpha=i===0?1:0.72+t*0.28;ctx.fill();
+      ctx.fillStyle=fill;
+      if(i === 0){
+        ctx.shadowColor=sk.g; ctx.shadowBlur=16; ctx.globalAlpha=1;
+      } else {
+        ctx.shadowBlur=0; ctx.globalAlpha=1;
+      }
+      ctx.fill();
     }
     ctx.globalAlpha=1;ctx.shadowBlur=0;
     drawEyesAndFaceOnCtx(ctx,hx,hy,this.angle,r,this.faceStyle);
@@ -1157,7 +1163,13 @@ class LocalWorm{
       else if(sk.type === 'rainbow'){ fill = `hsl(${(i * 12 + globalPhase * 35) % 360}, 95%, 50%)`; }
       else if(sk.type === 'cyber'){ fill = (i % 2 === 0) ? sk.colA : sk.colB; }
       if(i === 0) fill = sk.h;
-      ctx.fillStyle=fill;ctx.shadowColor=sk.g;ctx.shadowBlur=i===0?22:5;ctx.globalAlpha=i===0?1:0.72+t*0.28;ctx.fill();
+      ctx.fillStyle=fill;
+      if(i === 0){
+        ctx.shadowColor=sk.g; ctx.shadowBlur=22; ctx.globalAlpha=1;
+      } else {
+        ctx.shadowBlur=0; ctx.globalAlpha=1;
+      }
+      ctx.fill();
     }
     ctx.globalAlpha=1;ctx.shadowBlur=0;
     const hx=this.head.x-cam.x,hy=this.head.y-cam.y;
@@ -1380,7 +1392,7 @@ class AIWorm{
     const hx=this.head.x-cam.x,hy=this.head.y-cam.y;
     if(hx<-150||hx>W+150||hy<-150||hy>H+150)return;
     ctx.save();
-    const ds=this.segs.slice(0,60);
+    const ds=this.segs;
     for(let i=ds.length-1;i>=0;i--){
       const seg=ds[i],sx=seg.x-cam.x,sy=seg.y-cam.y;
       if(sx<-50||sx>W+50||sy<-50||sy>H+50)continue;
@@ -1392,7 +1404,13 @@ class AIWorm{
       else if(sk.type === 'rainbow'){ fill = `hsl(${(i * 12 + globalPhase * 35) % 360}, 95%, 50%)`; }
       else if(sk.type === 'cyber'){ fill = (i % 2 === 0) ? sk.colA : sk.colB; }
       if(i === 0) fill = sk.h;
-      ctx.fillStyle=fill;ctx.shadowColor=sk.g;ctx.shadowBlur=i===0?14:3;ctx.globalAlpha=i===0?1:0.72+t*0.28;ctx.fill();
+      ctx.fillStyle=fill;
+      if(i === 0){
+        ctx.shadowColor=sk.g; ctx.shadowBlur=14; ctx.globalAlpha=1;
+      } else {
+        ctx.shadowBlur=0; ctx.globalAlpha=1;
+      }
+      ctx.fill();
     }
     ctx.globalAlpha=1;ctx.shadowBlur=0;
     drawEyesAndFaceOnCtx(ctx,hx,hy,this.angle,r,this.faceStyle);
