@@ -1185,6 +1185,7 @@ function drawEyesAndFaceOnCtx(targetCtx, hx, hy, angle, r, faceStyle){
 // ═══════════════════════════════════════════════════════
 //  AI BOTS
 // ═══════════════════════════════════════════════════════
+class AIWorm{
   constructor(i, customLen){
     const skin=Math.abs((selectedSkin||0)+i+1)%SKINS.length;
     this.skin=skin;this.name=AI_NAMES[i % AI_NAMES.length]||('Bot'+i);
