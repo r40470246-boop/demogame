@@ -151,7 +151,7 @@ setInterval(()=>{
       while(da < -Math.PI) da += Math.PI*2;
       bot.angle += Math.sign(da) * Math.min(Math.abs(da), bot.turnRate);
 
-      const spd = 2.4;
+      const spd = 2.0;
       bot.x = Math.max(30, Math.min(room.mapSize-30, bot.x + Math.cos(bot.angle)*spd));
       bot.y = Math.max(30, Math.min(room.mapSize-30, bot.y + Math.sin(bot.angle)*spd));
 
@@ -305,6 +305,33 @@ io.on('connection', (socket)=>{
     io.to(pd.roomCode).emit('player_dead',{ id:socket.id, newFoods });
     const pName = room.players[socket.id]?.name||'Someone';
     io.to(pd.roomCode).emit('kill_feed', `💀 ${pName} eliminated!`);
+  });
+
+  socket.on('kill_bot', (data)=>{
+    const pd = players[socket.id]; if(!pd) return;
+    const room = rooms[pd.roomCode]; if(!room) return;
+    const bot = room.bots[data.botId];
+    if(bot && bot.alive){
+      bot.alive = false;
+      const newFoods = [];
+      (bot.segs || []).forEach((seg, i) => {
+        if(i % 2 === 0){
+          const f = makeFood(seg.x, seg.y, 20 + Math.floor(Math.random()*30), room.mapSize);
+          room.foods.push(f);
+          newFoods.push(f);
+        }
+      });
+      io.to(pd.roomCode).emit('player_dead', { id: bot.id, newFoods });
+      io.to(pd.roomCode).emit('kill_feed', `💥 ${bot.name} eliminated by ${room.players[socket.id]?.name || 'Player'}!`);
+      
+      // Respawn the bot after 3 seconds
+      setTimeout(() => {
+        if(room.bots[data.botId] === bot) {
+          spawnBot(room, Math.floor(Math.random()*AI_NAMES.length));
+          delete room.bots[data.botId];
+        }
+      }, 3000);
+    }
   });
 
   socket.on('ping_req', t => socket.emit('ping_res', t));

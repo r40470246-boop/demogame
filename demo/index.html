@@ -699,18 +699,16 @@ function getRandFruit(){
 //  SKINS & FACE ACCESSORIES
 // ═══════════════════════════════════════════════════════
 const SKINS=[
-  {n:'Green', h:'#2ecc40',b:'#1a8c2a',g:'#2ecc40'},
-  {n:'Red',   h:'#ff4136',b:'#b71c1c',g:'#ff4136'},
-  {n:'Blue',  h:'#1a9fff',b:'#1565c0',g:'#1a9fff'},
-  {n:'Purple',h:'#ce93d8',b:'#7b1fa2',g:'#ce93d8'},
-  {n:'Gold',  h:'#FFD700',b:'#f57f17',g:'#FFD700'},
-  {n:'Pink',  h:'#FF69B4',b:'#ad1457',g:'#FF69B4'},
-  {n:'Cyan',  h:'#00E5FF',b:'#006064',g:'#00E5FF'},
-  {n:'Orange',h:'#FF6D00',b:'#bf360c',g:'#FF6D00'},
-  {n:'Lime',  h:'#C6FF00',b:'#558b2f',g:'#C6FF00'},
-  {n:'Shadow',h:'#9B59B6',b:'#2c1654',g:'#9B59B6'},
-  {n:'Ice',   h:'#AEF6FF',b:'#5fc8d8',g:'#AEF6FF'},
-  {n:'Fire',  h:'#FF4500',b:'#8B0000',g:'#FF4500'},
+  {n:'Green Stripes', h:'#2ecc40',b:'#1a8c2a',g:'#2ecc40', type:'stripes', colA:'#2ecc40', colB:'#1a8c2a'},
+  {n:'Candy Cane',   h:'#ff4136',b:'#ffffff',g:'#ff4136', type:'candy',   colA:'#ff4136', colB:'#ffffff'},
+  {n:'Bumblebee',    h:'#ffd700',b:'#111111',g:'#ffd700', type:'stripes', colA:'#ffd700', colB:'#111111'},
+  {n:'Rainbow',      h:'#ff3b30',b:'#1a9fff',g:'#ff9500', type:'rainbow'},
+  {n:'Tiger',        h:'#ff8c00',b:'#111111',g:'#ff8c00', type:'stripes', colA:'#ff8c00', colB:'#111111'},
+  {n:'Neon Cyber',   h:'#00f5a0',b:'#00d9f5',g:'#00f5a0', type:'cyber',   colA:'#00f5a0', colB:'#00d9f5'},
+  {n:'Royal Gold',   h:'#ffd700',b:'#ff6b00',g:'#ffd700', type:'stripes', colA:'#ffd700', colB:'#ff6b00'},
+  {n:'Frozen Ice',   h:'#aef6ff',b:'#5fc8d8',g:'#aef6ff', type:'stripes', colA:'#aef6ff', colB:'#5fc8d8'},
+  {n:'Pink Panther', h:'#ff69b4',b:'#ffc0cb',g:'#ff69b4', type:'stripes', colA:'#ff69b4', colB:'#ffc0cb'},
+  {n:'Ghostly',      h:'#ce93d8',b:'#7b1fa2',g:'#ce93d8', type:'stripes', colA:'#ce93d8', colB:'#7b1fa2'},
 ];
 
 const FACE_SKINS = [
@@ -862,7 +860,13 @@ function updatePreview(){
     const t=i/segs,wave=Math.sin(prevPhase+i*0.4)*8;
     const x=cx-70+i*7+wave,y=cy+Math.sin(prevPhase*0.7+i*0.3)*5,sr=r*(1-t*0.3);
     pctx.beginPath();pctx.arc(x,y,sr,0,Math.PI*2);
-    pctx.fillStyle=i===0?s.h:s.b;pctx.shadowColor=s.g;pctx.shadowBlur=i===0?12:3;
+    let fill = s.b;
+    if(s.type === 'stripes'){ fill = (i % 4 < 2) ? s.colA : s.colB; }
+    else if(s.type === 'candy'){ fill = (i % 3 === 0) ? s.colA : s.colB; }
+    else if(s.type === 'rainbow'){ fill = `hsl(${(i * 12 + prevPhase * 35) % 360}, 95%, 50%)`; }
+    else if(s.type === 'cyber'){ fill = (i % 2 === 0) ? s.colA : s.colB; }
+    if(i === 0) fill = s.h;
+    pctx.fillStyle=fill;pctx.shadowColor=s.g;pctx.shadowBlur=i===0?12:3;
     pctx.globalAlpha=i===0?1:0.7+t*0.3;pctx.fill();
   }
   pctx.globalAlpha=1;pctx.shadowBlur=0;
@@ -1034,7 +1038,13 @@ class RemotePlayer{
       if(sx<-50||sx>W+50||sy<-50||sy>H+50)continue;
       const t=i/ds.length,sr=r*(1-t*0.3);
       ctx.beginPath();ctx.arc(sx,sy,sr,0,Math.PI*2);
-      ctx.fillStyle=i===0?sk.h:sk.b;ctx.shadowColor=sk.g;ctx.shadowBlur=i===0?16:3;ctx.globalAlpha=i===0?1:0.72+t*0.28;ctx.fill();
+      let fill = sk.b;
+      if(sk.type === 'stripes'){ fill = (i % 4 < 2) ? sk.colA : sk.colB; }
+      else if(sk.type === 'candy'){ fill = (i % 3 === 0) ? sk.colA : sk.colB; }
+      else if(sk.type === 'rainbow'){ fill = `hsl(${(i * 12 + globalPhase * 35) % 360}, 95%, 50%)`; }
+      else if(sk.type === 'cyber'){ fill = (i % 2 === 0) ? sk.colA : sk.colB; }
+      if(i === 0) fill = sk.h;
+      ctx.fillStyle=fill;ctx.shadowColor=sk.g;ctx.shadowBlur=i===0?16:3;ctx.globalAlpha=i===0?1:0.72+t*0.28;ctx.fill();
     }
     ctx.globalAlpha=1;ctx.shadowBlur=0;
     drawEyesAndFaceOnCtx(ctx,hx,hy,this.angle,r,this.faceStyle);
@@ -1070,7 +1080,7 @@ class LocalWorm{
       this.angle+=Math.sign(da)*Math.min(Math.abs(da),0.11);
     }
     const boosting=isBoosting&&activePU.speed<=0&&this.segs.length>15;
-    const spd=activePU.speed>0?5.0:boosting?4.6:2.4;
+    const spd=activePU.speed>0?4.5:boosting?3.8:2.0;
 
     let nx=this.head.x+Math.cos(this.angle)*spd;
     let ny=this.head.y+Math.sin(this.angle)*spd;
@@ -1107,7 +1117,13 @@ class LocalWorm{
       if(sx<-50||sx>W+50||sy<-50||sy>H+50)continue;
       const t=i/this.segs.length,sr=r*(1-t*0.3);
       ctx.beginPath();ctx.arc(sx,sy,sr,0,Math.PI*2);
-      ctx.fillStyle=i===0?sk.h:sk.b;ctx.shadowColor=sk.g;ctx.shadowBlur=i===0?22:5;ctx.globalAlpha=i===0?1:0.72+t*0.28;ctx.fill();
+      let fill = sk.b;
+      if(sk.type === 'stripes'){ fill = (i % 4 < 2) ? sk.colA : sk.colB; }
+      else if(sk.type === 'candy'){ fill = (i % 3 === 0) ? sk.colA : sk.colB; }
+      else if(sk.type === 'rainbow'){ fill = `hsl(${(i * 12 + globalPhase * 35) % 360}, 95%, 50%)`; }
+      else if(sk.type === 'cyber'){ fill = (i % 2 === 0) ? sk.colA : sk.colB; }
+      if(i === 0) fill = sk.h;
+      ctx.fillStyle=fill;ctx.shadowColor=sk.g;ctx.shadowBlur=i===0?22:5;ctx.globalAlpha=i===0?1:0.72+t*0.28;ctx.fill();
     }
     ctx.globalAlpha=1;ctx.shadowBlur=0;
     const hx=this.head.x-cam.x,hy=this.head.y-cam.y;
@@ -1216,7 +1232,7 @@ class AIWorm{
     let da=ta-this.angle;while(da>Math.PI)da-=Math.PI*2;while(da<-Math.PI)da+=Math.PI*2;
     this.angle+=Math.sign(da)*Math.min(Math.abs(da),this.tr);
 
-    const spd = 2.4;
+    const spd = 2.0;
     const nx=Math.max(this.r,Math.min(MAP-this.r,this.head.x+Math.cos(this.angle)*spd));
     const ny=Math.max(this.r,Math.min(MAP-this.r,this.head.y+Math.sin(this.angle)*spd));
     this.segs.unshift({x:nx,y:ny});this.segs.pop();
@@ -1245,7 +1261,13 @@ class AIWorm{
       if(sx<-50||sx>W+50||sy<-50||sy>H+50)continue;
       const t=i/ds.length,sr=r*(1-t*0.3);
       ctx.beginPath();ctx.arc(sx,sy,sr,0,Math.PI*2);
-      ctx.fillStyle=i===0?sk.h:sk.b;ctx.shadowColor=sk.g;ctx.shadowBlur=i===0?14:3;ctx.globalAlpha=i===0?1:0.72+t*0.28;ctx.fill();
+      let fill = sk.b;
+      if(sk.type === 'stripes'){ fill = (i % 4 < 2) ? sk.colA : sk.colB; }
+      else if(sk.type === 'candy'){ fill = (i % 3 === 0) ? sk.colA : sk.colB; }
+      else if(sk.type === 'rainbow'){ fill = `hsl(${(i * 12 + globalPhase * 35) % 360}, 95%, 50%)`; }
+      else if(sk.type === 'cyber'){ fill = (i % 2 === 0) ? sk.colA : sk.colB; }
+      if(i === 0) fill = sk.h;
+      ctx.fillStyle=fill;ctx.shadowColor=sk.g;ctx.shadowBlur=i===0?14:3;ctx.globalAlpha=i===0?1:0.72+t*0.28;ctx.fill();
     }
     ctx.globalAlpha=1;ctx.shadowBlur=0;
     drawEyesAndFaceOnCtx(ctx,hx,hy,this.angle,r,this.faceStyle);
@@ -1399,6 +1421,10 @@ function checkCols(){
               const newBot = new AIWorm(Math.floor(Math.random()*AI_NAMES.length));
               others[idx] = newBot;
             }, 3000);
+          } else {
+            if(rp.id && rp.id.startsWith('bot_')){
+              socket?.emit('kill_bot', { botId: rp.id });
+            }
           }
           break;
         }
