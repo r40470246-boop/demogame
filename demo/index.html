@@ -1514,12 +1514,11 @@ function drawParticles(){
 }
 
 function drawMap(){
-  let bgCol='#080c14', gridCol='rgba(255,255,255,0.025)', borderCol='rgba(255,80,80,0.4)';
-  if(selectedTheme==='jungle'){ bgCol='#08140c'; gridCol='rgba(46,204,64,0.035)'; borderCol='rgba(46,204,64,0.5)'; }
-  else if(selectedTheme==='cyber'){ bgCol='#12081c'; gridCol='rgba(0,229,255,0.04)'; borderCol='rgba(0,229,255,0.6)'; }
-  else if(selectedTheme==='mega'){ bgCol='#1c0808'; gridCol='rgba(255,100,0,0.04)'; borderCol='rgba(255,100,0,0.6)'; }
+  let gridCol='rgba(255,255,255,0.025)', borderCol='rgba(255,80,80,0.4)';
+  if(selectedTheme==='jungle'){ gridCol='rgba(46,204,64,0.035)'; borderCol='rgba(46,204,64,0.5)'; }
+  else if(selectedTheme==='cyber'){ gridCol='rgba(0,229,255,0.04)'; borderCol='rgba(0,229,255,0.6)'; }
+  else if(selectedTheme==='mega'){ gridCol='rgba(255,100,0,0.04)'; borderCol='rgba(255,100,0,0.6)'; }
 
-  ctx.fillStyle=bgCol;ctx.fillRect(0,0,W,H);
   ctx.strokeStyle=gridCol;ctx.lineWidth=1;
   const g=90,sx=-(cam.x%g),sy=-(cam.y%g);
   for(let x=sx;x<W+g;x+=g){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
@@ -1567,10 +1566,13 @@ function checkCols(){
     const rp = others[idx];
     if(!rp || rp.alive === false) continue;
 
-    // OTHER SNAKE HEAD HITS MY BODY -> THEY DIE!
+    // Performance Guard: Skip segment checks if bot head is far from player head
     const rpHead = rp.head || { x: rp.x, y: rp.y };
+    if(Math.hypot(rpHead.x - player.head.x, rpHead.y - player.head.y) > 400) continue;
+
+    // OTHER SNAKE HEAD HITS MY BODY -> THEY DIE!
     if(rpHead && player.segs.length > 5){
-      for(let j = 2; j < player.segs.length; j++){
+      for(let j = 2; j < player.segs.length; j += 2){ // Step by 2 for performance
         const mySeg = player.segs[j];
         if(Math.hypot(mySeg.x - rpHead.x, mySeg.y - rpHead.y) < (rp.r + player.r) * 1.15){
           if(isOffline){
@@ -1616,7 +1618,7 @@ function checkCols(){
     // MY HEAD HITS OTHER BODY -> I DIE (unless invincible / shield)!
     if(player.alive && spawnInvincibility <= 0){
       const segs = rp.segs || [];
-      for(let i = 2; i < segs.length; i++){
+      for(let i = 2; i < segs.length; i += 2){ // Step by 2 for performance
         const seg = segs[i];
         if(Math.hypot(seg.x - player.head.x, seg.y - player.head.y) < (player.r + rp.r) * 0.72){
           if(activePU.shield > 0){
@@ -1638,7 +1640,11 @@ function checkCols(){
       aiWorms.forEach((botB, idxB) => {
         if(idxA === idxB || !botB.alive) return;
         const headA = botA.head;
-        for(let k = 2; k < botB.segs.length; k++){
+        
+        // Performance Guard: Skip segment checks if bot heads are far away
+        if(Math.hypot(botB.head.x - headA.x, botB.head.y - headA.y) > 320) return;
+        
+        for(let k = 2; k < botB.segs.length; k += 2){ // Step by 2
           const segB = botB.segs[k];
           if(Math.hypot(segB.x - headA.x, segB.y - headA.y) < (botA.r + botB.r) * 0.82){
             botA.alive = false;
@@ -1798,6 +1804,14 @@ function loop(ts){
   if(activePU.zoom > 0){
     activeScale = activeScale * 0.65; // Potion zoom out!
   }
+
+  // 1. Draw physical background color FIRST at 100% scale (no trailing frames or borders!)
+  let bgCol='#080c14';
+  if(selectedTheme==='jungle') bgCol='#08140c';
+  else if(selectedTheme==='cyber') bgCol='#12081c';
+  else if(selectedTheme==='mega') bgCol='#1c0808';
+  ctx.fillStyle=bgCol;
+  ctx.fillRect(0,0,W,H);
 
   ctx.save();
   if(activeScale !== 1.0){
