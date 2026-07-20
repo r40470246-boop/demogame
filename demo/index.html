@@ -273,7 +273,7 @@ html,body{
 }
 
 #pnotif{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);border:1px solid rgba(255,255,255,0.18);border-radius:30px;padding:8px 22px;font-size:15px;font-weight:800;z-index:60;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap;}
-#killFeed{position:fixed;bottom:70px;left:12px;z-index:50;pointer-events:none;display:flex;flex-direction:column;gap:3px;}
+#killFeed{position:fixed;bottom:140px;left:15px;z-index:50;pointer-events:none;display:flex;flex-direction:column;gap:3px;}
 .kf{background:rgba(0,0,0,0.75);border-radius:8px;padding:4px 10px;font-size:11px;border-left:3px solid #ff4136;animation:kfIn .3s ease;}
 @keyframes kfIn{from{opacity:0;transform:translateX(-10px);}to{opacity:1;}}
 
@@ -282,6 +282,27 @@ html,body{
 .pfill{height:4px;width:55px;background:rgba(255,255,255,0.12);border-radius:2px;overflow:hidden;}
 .pinner{height:100%;border-radius:2px;transition:width .2s;}
 #pingBadge{position:fixed;bottom:10px;right:15px;font-size:10px;color:rgba(255,255,255,0.25);z-index:50;pointer-events:none;text-align:right;}
+
+.minimap-container {
+  position: fixed;
+  bottom: 15px;
+  left: 15px;
+  width: 110px;
+  height: 110px;
+  background: rgba(0,0,0,0.65);
+  border: 1.5px solid rgba(255,255,255,0.18);
+  border-radius: 50%;
+  z-index: 55;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+}
+.minimap-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
 
 /* ── 2-SIDE TOUCH CONTROLLER ZONES (INVISIBLE JOYSTICKS) ── */
 #leftJoyZone,#rightJoyZone{
@@ -496,6 +517,9 @@ window.addEventListener('error', function(e) {
 <div id="pBars"></div>
 <div id="killFeed"></div>
 <div id="pingBadge"></div>
+<div class="minimap-container" id="minimapContainer">
+  <canvas id="minimapCanvas" class="minimap-canvas" width="110" height="110"></canvas>
+</div>
 
 <!-- 2-SIDE INVISIBLE TOUCH CONTROLLER ZONES -->
 <div id="leftJoyZone" style="display:none;"></div>
@@ -1237,21 +1261,39 @@ class AIWorm{
       ta=Math.atan2(this.target.y-this.head.y,this.target.x-this.head.x);
     }
 
-    // --- PRO COLLISION AVOIDANCE AI ---
+    // --- PRO COLLISION AVOIDANCE & BEHAVIOR AI ---
     let steerAngle = ta;
     let obstacleFound = false;
+
+    this.boosting = false;
+
+    // Smart Hunting / Cutting off player (asli player jaise)
+    if(player && player.alive){
+      const distToPlayer = Math.hypot(player.head.x - this.head.x, player.head.y - this.head.y);
+      if(distToPlayer < 240 && this.size > 22){
+        // Try to cut in front of player path
+        const targetX = player.head.x + Math.cos(player.angle) * 90;
+        const targetY = player.head.y + Math.sin(player.angle) * 90;
+        ta = Math.atan2(targetY - this.head.y, targetX - this.head.x);
+        
+        // Randomly boost to cut them off
+        if(Math.random() < 0.08){
+          this.boosting = true;
+        }
+      }
+    }
 
     // Check player body collision ahead (only if player is alive)
     if(player && player.alive){
       for(let j = 0; j < player.segs.length; j += 2){
         const seg = player.segs[j];
-        // Project bot position 70px ahead
-        const projX = this.head.x + Math.cos(this.angle) * 70;
-        const projY = this.head.y + Math.sin(this.angle) * 70;
+        // Project bot position 75px ahead
+        const projX = this.head.x + Math.cos(this.angle) * 75;
+        const projY = this.head.y + Math.sin(this.angle) * 75;
         if(Math.hypot(seg.x - projX, seg.y - projY) < player.r + this.r + 25){
           obstacleFound = true;
           const angleToObstacle = Math.atan2(seg.y - this.head.y, seg.x - this.head.x);
-          steerAngle = angleToObstacle + Math.PI / 2 + (Math.random() - 0.5) * 0.5;
+          steerAngle = angleToObstacle + Math.PI / 2 + (Math.random() - 0.5) * 0.4;
           break;
         }
       }
@@ -1263,12 +1305,12 @@ class AIWorm{
         if(other === this || !other.alive) continue;
         for(let j = 0; j < other.segs.length; j += 2){
           const seg = other.segs[j];
-          const projX = this.head.x + Math.cos(this.angle) * 70;
-          const projY = this.head.y + Math.sin(this.angle) * 70;
+          const projX = this.head.x + Math.cos(this.angle) * 75;
+          const projY = this.head.y + Math.sin(this.angle) * 75;
           if(Math.hypot(seg.x - projX, seg.y - projY) < other.r + this.r + 25){
             obstacleFound = true;
             const angleToObstacle = Math.atan2(seg.y - this.head.y, seg.x - this.head.x);
-            steerAngle = angleToObstacle + Math.PI / 2 + (Math.random() - 0.5) * 0.5;
+            steerAngle = angleToObstacle + Math.PI / 2 + (Math.random() - 0.5) * 0.4;
             break;
           }
         }
@@ -1289,10 +1331,24 @@ class AIWorm{
     const turnLimit = Math.max(0.045, 0.12 - this.size * 0.00025);
     this.angle += Math.sign(da) * Math.min(Math.abs(da), turnLimit);
 
-    const spd = 2.4;
+    const boosting = this.boosting && this.segs.length > 25;
+    const spd = boosting ? 3.8 : 2.4;
+
     const nx=Math.max(this.r,Math.min(MAP-this.r,this.head.x+Math.cos(this.angle)*spd));
     const ny=Math.max(this.r,Math.min(MAP-this.r,this.head.y+Math.sin(this.angle)*spd));
     this.segs.unshift({x:nx,y:ny});this.segs.pop();
+
+    if(boosting){
+      this.score = Math.max(150, this.score - 1);
+      if(Math.random() < 0.18 && this.segs.length > 20){
+        this.segs.pop();
+        const tail = this.segs[this.segs.length-1];
+        if(tail){
+          const f = makeLocalFood(tail.x + rnd(-8,8), tail.y + rnd(-8,8));
+          f.val = 5; foods[f.id] = f;
+        }
+      }
+    }
 
     Object.entries(foods).forEach(([id,f])=>{
       if(Math.hypot(f.x-this.head.x,f.y-this.head.y)<this.r+12){
@@ -1386,6 +1442,61 @@ function drawPowerups(){
     ctx.font='19px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(meta.icon,0,0);
     ctx.restore();
   });
+}
+
+const mc = document.getElementById('minimapCanvas');
+const mctx = mc ? mc.getContext('2d') : null;
+function drawMinimap(){
+  if(!mc || !player) return;
+  const mw = mc.width = 110;
+  const mh = mc.height = 110;
+  mctx.clearRect(0, 0, mw, mh);
+  
+  // Background grid/radar effect
+  mctx.fillStyle = 'rgba(255,255,255,0.015)';
+  mctx.beginPath(); mctx.arc(mw/2, mh/2, mw/2 - 2, 0, Math.PI*2); mctx.fill();
+  
+  const factor = (mw - 10) / MAP;
+  const pad = 5;
+  
+  // Draw map boundaries scaled
+  mctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  mctx.lineWidth = 1;
+  mctx.strokeRect(pad, pad, MAP * factor, MAP * factor);
+  
+  // Draw other snakes (bots / remote players)
+  const others = isOffline ? aiWorms : Object.values(remotePlayers);
+  others.forEach(bot => {
+    if(!bot || !bot.alive) return;
+    const bx = pad + bot.x * factor;
+    const by = pad + bot.y * factor;
+    mctx.fillStyle = SKINS[bot.skin]?.h || '#ff4136';
+    mctx.beginPath();
+    mctx.arc(bx, by, Math.max(1.2, Math.min(3, bot.size * 0.01)), 0, Math.PI*2);
+    mctx.fill();
+  });
+  
+  // Draw player
+  if(player.alive && player.head){
+    const px = pad + player.head.x * factor;
+    const py = pad + player.head.y * factor;
+    
+    // Pulsing white/green dot
+    const pulse = 1.5 + Math.sin(globalPhase * 3) * 0.5;
+    mctx.shadowColor = '#00f5a0';
+    mctx.shadowBlur = 8;
+    mctx.fillStyle = '#00f5a0';
+    mctx.beginPath();
+    mctx.arc(px, py, 3, 0, Math.PI*2);
+    mctx.fill();
+    
+    mctx.shadowBlur = 0;
+    mctx.strokeStyle = '#ffffff';
+    mctx.lineWidth = 1;
+    mctx.beginPath();
+    mctx.arc(px, py, 4.5 + pulse, 0, Math.PI*2);
+    mctx.stroke();
+  }
 }
 
 function addParticles(wx,wy,col,n){
@@ -1679,8 +1790,13 @@ function loop(ts){
   }
 
   let activeScale = camScale;
+  if(player?.alive){
+    // Scale smoothly from 1.0 down to 0.52 as player size increases
+    const sizeScale = Math.max(0.52, 1.0 - (player.size - 20) * 0.00045);
+    activeScale = activeScale * sizeScale;
+  }
   if(activePU.zoom > 0){
-    activeScale = camScale * 0.62; // Potion zoom out!
+    activeScale = activeScale * 0.65; // Potion zoom out!
   }
 
   ctx.save();
@@ -1714,6 +1830,8 @@ function loop(ts){
   drawPUBars();
 
   ctx.restore();
+
+  drawMinimap(); // Fixed position on screen canvas!
 
   if(!isOffline){
     sendTimer+=dt;
