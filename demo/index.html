@@ -571,6 +571,7 @@ let lastJoinData = null;
 let globalPhase = 0;
 let revivesLeft = 2;
 let spawnInvincibility = 0;
+let kingWorm = null;
 
 
 
@@ -1062,7 +1063,7 @@ class RemotePlayer{
     for(let i=ds.length-1;i>=0;i--){
       const seg=ds[i],sx=seg.x-cam.x,sy=seg.y-cam.y;
       if(sx<-50||sx>W+50||sy<-50||sy>H+50)continue;
-      const t=i/ds.length,sr=r*(1-t*0.3);
+      const t=i/ds.length,sr=r*(1-t*0.12);
       ctx.beginPath();ctx.arc(sx,sy,sr,0,Math.PI*2);
       let fill = sk.b;
       if(sk.type === 'stripes'){ fill = (i % 4 < 2) ? sk.colA : sk.colB; }
@@ -1074,6 +1075,10 @@ class RemotePlayer{
     }
     ctx.globalAlpha=1;ctx.shadowBlur=0;
     drawEyesAndFaceOnCtx(ctx,hx,hy,this.angle,r,this.faceStyle);
+    if(kingWorm && kingWorm.name === this.name){
+      ctx.font='16px serif';ctx.textAlign='center';
+      ctx.fillText('👑',hx,hy-r-16);
+    }
     if(showInGameNames){
       ctx.font='bold 11px Segoe UI';ctx.textAlign='center';
       ctx.fillStyle='rgba(255,255,255,0.85)';ctx.shadowColor='rgba(0,0,0,0.9)';ctx.shadowBlur=4;
@@ -1107,7 +1112,9 @@ class LocalWorm{
       this.angle+=Math.sign(da)*Math.min(Math.abs(da),turnLimit);
     }
     const boosting=isBoosting&&activePU.speed<=0&&this.segs.length>15;
-    const spd=activePU.speed>0?4.8:boosting?4.1:2.4;
+    const sizeFactor = 1.0 + (this.size - 20) * 0.00045;
+    const baseSpd = activePU.speed>0?4.8:boosting?4.1:2.4;
+    const spd = baseSpd * Math.min(1.4, sizeFactor);
 
     let nx=this.head.x+Math.cos(this.angle)*spd;
     let ny=this.head.y+Math.sin(this.angle)*spd;
@@ -1142,7 +1149,7 @@ class LocalWorm{
     for(let i=this.segs.length-1;i>=0;i--){
       const seg=this.segs[i],sx=seg.x-cam.x,sy=seg.y-cam.y;
       if(sx<-50||sx>W+50||sy<-50||sy>H+50)continue;
-      const t=i/this.segs.length,sr=r*(1-t*0.3);
+      const t=i/this.segs.length,sr=r*(1-t*0.12);
       ctx.beginPath();ctx.arc(sx,sy,sr,0,Math.PI*2);
       let fill = sk.b;
       if(sk.type === 'stripes'){ fill = (i % 4 < 2) ? sk.colA : sk.colB; }
@@ -1162,6 +1169,10 @@ class LocalWorm{
     if(activePU.shield>0){
       ctx.beginPath();ctx.arc(hx,hy,r+8,0,Math.PI*2);
       ctx.strokeStyle='rgba(46,204,64,0.8)';ctx.lineWidth=3;ctx.shadowColor='#2ecc40';ctx.shadowBlur=20;ctx.stroke();ctx.shadowBlur=0;
+    }
+    if(kingWorm && kingWorm.name === this.name){
+      ctx.font='18px serif';ctx.textAlign='center';
+      ctx.fillText('👑',hx,hy-r-19);
     }
     if(showInGameNames){
       ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
@@ -1332,7 +1343,8 @@ class AIWorm{
     this.angle += Math.sign(da) * Math.min(Math.abs(da), turnLimit);
 
     const boosting = this.boosting && this.segs.length > 25;
-    const spd = boosting ? 3.8 : 2.4;
+    const sizeFactor = 1.0 + (this.size - 20) * 0.00045;
+    const spd = (boosting ? 3.8 : 2.4) * Math.min(1.4, sizeFactor);
 
     const nx=Math.max(this.r,Math.min(MAP-this.r,this.head.x+Math.cos(this.angle)*spd));
     const ny=Math.max(this.r,Math.min(MAP-this.r,this.head.y+Math.sin(this.angle)*spd));
@@ -1372,7 +1384,7 @@ class AIWorm{
     for(let i=ds.length-1;i>=0;i--){
       const seg=ds[i],sx=seg.x-cam.x,sy=seg.y-cam.y;
       if(sx<-50||sx>W+50||sy<-50||sy>H+50)continue;
-      const t=i/ds.length,sr=r*(1-t*0.3);
+      const t=i/ds.length,sr=r*(1-t*0.12);
       ctx.beginPath();ctx.arc(sx,sy,sr,0,Math.PI*2);
       let fill = sk.b;
       if(sk.type === 'stripes'){ fill = (i % 4 < 2) ? sk.colA : sk.colB; }
@@ -1384,6 +1396,10 @@ class AIWorm{
     }
     ctx.globalAlpha=1;ctx.shadowBlur=0;
     drawEyesAndFaceOnCtx(ctx,hx,hy,this.angle,r,this.faceStyle);
+    if(kingWorm && kingWorm.name === this.name){
+      ctx.font='16px serif';ctx.textAlign='center';
+      ctx.fillText('👑',hx,hy-r-16);
+    }
     if(showInGameNames){
       ctx.font='bold 11px Segoe UI';ctx.textAlign='center';
       ctx.fillStyle='rgba(255,255,255,0.85)';ctx.shadowColor='rgba(0,0,0,0.9)';ctx.shadowBlur=4;
@@ -1789,6 +1805,21 @@ function loop(ts){
   globalPhase+=dt*2.5;
   Object.keys(activePU).forEach(k=>{if(activePU[k]>0)activePU[k]-=dt;else activePU[k]=0;});
   if(spawnInvincibility>0) spawnInvincibility-=dt;
+
+  // Update King Worm
+  let allWorms = [player, ...aiWorms].filter(w => w && w.alive);
+  if(!isOffline){
+    allWorms = [player, ...Object.values(remotePlayers)].filter(w => w && w.alive);
+  }
+  let highestScore = -1;
+  let currentKing = null;
+  allWorms.forEach(w => {
+    if(w.score > highestScore){
+      highestScore = w.score;
+      currentKing = w;
+    }
+  });
+  kingWorm = currentKing;
 
   if(player?.alive&&player.head){
     const tx=player.head.x-W/2,ty=player.head.y-H/2;
